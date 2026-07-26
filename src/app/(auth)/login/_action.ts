@@ -31,8 +31,8 @@ export const loginAction = async (payload: IloginPayload): Promise<ILoginRespons
     }
   }
   const { token, accessToken, refreshToken, user } = response.data;
-  await setTokenInCookies("better-auth.session_token", token);
-  if(accessToken){await setTokenInCookies("accessToken", accessToken);}
+  if(token){await setTokenInCookies("better-auth.session_token", token)}
+  if(accessToken){await setTokenInCookies("accessToken", accessToken)}
   if(refreshToken){await setTokenInCookies("refreshToken", refreshToken)}
 
   const role = user?.role.toUpperCase();

@@ -8,12 +8,13 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const getTokenSecondsRemaining = async (token: string) => {
   if (!token) return 0;
   try {
-    const payload = JWT_SECRET ? jwt.verify(token, JWT_SECRET) as JwtPayload: jwt.decode(token) as JwtPayload;
+    // const payload = JWT_SECRET ? jwt.verify(token, JWT_SECRET) as JwtPayload: jwt.decode(token) as JwtPayload;
+    // console.log("payload", payload);
     // if (payload && !payload.exp) return 0;
-    const now = Date.now() / 1000;
+    // const now = Date.now() / 1000;
     // const secondsRemaining = Math.round(payload.exp as number - now);
-    const secondsRemaining = 10000
-    return secondsRemaining > 0 ? secondsRemaining : 0;
+    const secondsRemaining = 60 * 60 * 24 * 7; // 7 days
+    return secondsRemaining;
   } catch (error) {
     console.error("Error getting token seconds remaining", error);
     return 0;
