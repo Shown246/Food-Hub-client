@@ -26,7 +26,16 @@ export interface ILoginResponse {
   success: true;
   user: AuthUser | null;
   providerProfile: ProviderProfile | null;
-  token: string;                     // Use this for authentication
-  accessToken: string | null;        // Present only if using OAuth login
-  refreshToken: string | null;       // Present only if using OAuth login
+  token?: string;                     // Use this for authentication
+  accessToken?: string | null;        // Present only if using OAuth login
+  refreshToken?: string | null;       // Present only if using OAuth login
 }
+
+export interface ISignupResponse {
+  success: true;
+  user: AuthUser | null;
+  providerProfile: ProviderProfile | null;
+  token?: string;
+  accessToken?: string | null;
+  refreshToken?: string | null;
+}

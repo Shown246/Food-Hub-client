@@ -1,5 +1,5 @@
 'use server';
-import jwt, { JwtPayload } from 'jsonwebtoken';
+
 import { setCookie } from './cookieUtils';
 const JWT_SECRET = process.env.JWT_SECRET;
 // if (!JWT_SECRET) {
