@@ -1,9 +1,5 @@
-import React from 'react'
+import { redirect } from "next/navigation";
 
-const CustomerConsolePage = () => {
-  return (
-    <div>CustomerConsolePage</div>
-  )
+export default function CustomerConsolePage() {
+  redirect("/console/customer/orders");
 }
-
-export default CustomerConsolePage

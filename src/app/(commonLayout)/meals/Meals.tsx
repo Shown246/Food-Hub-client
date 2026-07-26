@@ -168,12 +168,13 @@ const Meals = () => {
     queryFn: getMeals,
   });
 
-  const mealsList: Meal[] = Array.isArray(data)
-    ? data
-    : Array.isArray(data?.data)
-    ? data.data
-    : Array.isArray(data?.data?.data)
-    ? data.data.data
+  const rawData = data as any;
+  const mealsList: Meal[] = Array.isArray(rawData)
+    ? rawData
+    : Array.isArray(rawData?.data)
+    ? rawData.data
+    : Array.isArray(rawData?.data?.data)
+    ? rawData.data.data
     : [];
 
   return (

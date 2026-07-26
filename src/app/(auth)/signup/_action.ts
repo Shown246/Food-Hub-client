@@ -92,6 +92,9 @@ export const signupAction = async (
     }
 
     const role = user?.role?.toUpperCase();
+    if (role) {
+      await setTokenInCookies("userRole", role);
+    }
     switch (role) {
       case "CUSTOMER":
         redirect("/console/customer");

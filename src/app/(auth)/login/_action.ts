@@ -36,6 +36,13 @@ export const loginAction = async (payload: IloginPayload): Promise<ILoginRespons
   if(refreshToken){await setTokenInCookies("refreshToken", refreshToken)}
 
   const role = user?.role.toUpperCase();
+  if(!role) {
+    return {
+      success: false,
+      message: "User role not found"
+    }
+  }
+  await setTokenInCookies("userRole", role);
   switch (role) {
     case 'CUSTOMER':
       redirect("/console/customer");

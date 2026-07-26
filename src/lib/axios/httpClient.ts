@@ -8,23 +8,24 @@ if (!API_BASE_URL) {
 const axiosInstance = () => {
   const instance = axios.create({
     baseURL: API_BASE_URL,
-    timeout: 30000, // Set a timeout of 10 seconds
+    timeout: 30000,
+    withCredentials: true,
     headers: {
       'Content-Type': 'application/json',
     },
   });
 
   return instance;
-}
+};
 export interface ApiOptions {
   data?: any;
   headers?: Record<string, string>;
   params?: Record<string, any>;
 }
 
-const httpGet = async (endpoint: string, options: ApiOptions) => {
+const httpGet = async <TData>(endpoint: string, options: ApiOptions): Promise<ApiResponse<TData>> => {
   try {
-    const response = await axiosInstance().get(endpoint,{ 
+    const response = await axiosInstance().get<ApiResponse<TData>>(endpoint, { 
         params: options?.params, 
         headers: options?.headers });
     return response.data;
@@ -32,7 +33,7 @@ const httpGet = async (endpoint: string, options: ApiOptions) => {
     console.error(`GET request to ${endpoint} failed:`, error);
     throw error;
   }
-}
+};
 
 const httpPost = async<TData> (endpoint: string, data: unknown, options: ApiOptions): Promise<ApiResponse<TData>> => {
   try {
