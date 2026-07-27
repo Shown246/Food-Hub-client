@@ -42,7 +42,6 @@ export const loginAction = async (payload: IloginPayload): Promise<ILoginRespons
       message: "User role not found"
     }
   }
-  await setTokenInCookies("userRole", role);
   switch (role) {
     case 'CUSTOMER':
       redirect("/console/customer");

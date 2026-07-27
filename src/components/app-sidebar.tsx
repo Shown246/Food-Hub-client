@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { usePathname } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Sidebar,
   SidebarContent,
@@ -26,34 +26,28 @@ import {
   ShieldCheckIcon,
   StoreIcon,
 } from "lucide-react";
-import { getCustomerProfile, logoutAction } from "@/app/console/customer/_actions";
-import { Button } from "@/components/ui/button";
+import { logoutAction } from "@/app/console/customer/_actions";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { currentUserQueryKey } from "@/queries/current-user.query";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
-  const router = useRouter();
+  const queryClient = useQueryClient();
   const [isLoggingOut, setIsLoggingOut] = React.useState(false);
 
-  // Fetch current customer profile for header/footer
-  const { data: profileRes } = useQuery({
-    queryKey: ["customer-profile"],
-    queryFn: getCustomerProfile,
-    staleTime: 1000 * 60 * 5, // 5 mins
-  });
-
-  const user = profileRes && profileRes.success && profileRes.data ? profileRes.data.user : null;
+  const { data: currentUser } = useCurrentUser();
+  const user = currentUser?.user;
 
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true);
+      queryClient.removeQueries({ queryKey: currentUserQueryKey });
       await logoutAction();
     } catch (error) {
       console.error("Logout failed:", error);
       setIsLoggingOut(false);
     }
   };
-
-  const isCustomerRoute = pathname.startsWith("/console/customer");
 
   const customerNavItems = [
     {
@@ -70,6 +64,26 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
   ];
 
+  const navItems = user?.role === "ADMIN"
+    ? [{
+        title: "Admin dashboard",
+        url: "/console/admin",
+        icon: ShieldCheckIcon,
+        isActive: pathname.startsWith("/console/admin"),
+      }]
+    : user?.role === "PROVIDER"
+      ? [{
+          title: "Provider dashboard",
+          url: "/console/provider",
+          icon: StoreIcon,
+          isActive: pathname.startsWith("/console/provider"),
+        }]
+      : customerNavItems;
+
+  const portalName = user
+    ? `${user.role.charAt(0)}${user.role.slice(1).toLowerCase()} Portal`
+    : "FoodHub Portal";
+
   return (
     <Sidebar collapsible="icon" className="border-r border-border/40 bg-sidebar" {...props}>
       {/* Sidebar Header */}
@@ -80,7 +94,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </div>
           <div className="flex flex-col truncate group-data-[collapsible=icon]:hidden">
             <span className="font-bold text-base tracking-tight text-sidebar-foreground">FoodHub</span>
-            <span className="text-xs text-muted-foreground font-medium">Customer Portal</span>
+            <span className="text-xs text-muted-foreground font-medium">{portalName}</span>
           </div>
         </Link>
       </SidebarHeader>
@@ -93,7 +107,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {customerNavItems.map((item) => {
+              {navItems.map((item) => {
                 const Icon = item.icon;
                 return (
                   <SidebarMenuItem key={item.title}>

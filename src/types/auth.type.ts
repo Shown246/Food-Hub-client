@@ -9,6 +9,11 @@ export interface ProviderProfile {
   acceptingOrders: boolean;
 }
 
+export interface CurrentUserData {
+  user: AuthUser;
+  providerProfile: ProviderProfile | null;
+}
+
 export interface AuthUser {
   id: string;
   fullName: string;
@@ -38,4 +43,4 @@ export interface ISignupResponse {
   token?: string;
   accessToken?: string | null;
   refreshToken?: string | null;
-}
+}

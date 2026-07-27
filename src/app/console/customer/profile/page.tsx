@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getCustomerProfile, updateCustomerProfile, UpdateProfilePayload } from '../_actions';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { updateCustomerProfile, UpdateProfilePayload } from '../_actions';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,6 +23,8 @@ import {
   Shield,
   Save,
 } from 'lucide-react';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { currentUserQueryKey } from '@/queries/current-user.query';
 
 export default function CustomerProfilePage() {
   const queryClient = useQueryClient();
@@ -33,13 +35,8 @@ export default function CustomerProfilePage() {
   const [profileImageUrl, setProfileImageUrl] = useState('');
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  // Fetch current user profile
-  const { data: profileRes, isLoading, isError, refetch } = useQuery({
-    queryKey: ['customer-profile'],
-    queryFn: getCustomerProfile,
-  });
-
-  const user = profileRes && profileRes.success && profileRes.data ? profileRes.data.user : null;
+  const { data: currentUser, isLoading, isError, refetch } = useCurrentUser();
+  const user = currentUser?.user;
 
   // Initialize form state when profile is loaded
   useEffect(() => {
@@ -57,7 +54,7 @@ export default function CustomerProfilePage() {
     onSuccess: (res) => {
       if (res.success) {
         setFeedback({ type: 'success', message: 'Profile updated successfully!' });
-        queryClient.invalidateQueries({ queryKey: ['customer-profile'] });
+        queryClient.invalidateQueries({ queryKey: currentUserQueryKey });
         setTimeout(() => setFeedback(null), 4000);
       } else {
         setFeedback({ type: 'error', message: res.message || 'Failed to update profile.' });

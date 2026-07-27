@@ -92,9 +92,6 @@ export const signupAction = async (
     }
 
     const role = user?.role?.toUpperCase();
-    if (role) {
-      await setTokenInCookies("userRole", role);
-    }
     switch (role) {
       case "CUSTOMER":
         redirect("/console/customer");
@@ -105,7 +102,7 @@ export const signupAction = async (
       default:
         redirect("/");
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       const errorData = error.response?.data;
       const msg =

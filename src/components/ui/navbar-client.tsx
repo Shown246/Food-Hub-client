@@ -4,9 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, LogOut, Menu, ShoppingBag, X } from "lucide-react";
 import { useState, useTransition } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { cn } from "@/lib/utils";
 import { logoutAction } from "@/app/(auth)/logout_action";
+import { currentUserQueryKey } from "@/queries/current-user.query";
 
 const navigation = [
   { label: "Home", href: "/" },
@@ -20,12 +22,12 @@ function isActivePath(pathname: string, href: string) {
 
 interface NavbarClientProps {
   isLoggedIn: boolean;
-  userRole: string | null;
   consoleUrl: string;
 }
 
-export function NavbarClient({ isLoggedIn, userRole, consoleUrl }: NavbarClientProps) {
+export function NavbarClient({ isLoggedIn, consoleUrl }: NavbarClientProps) {
   const pathname = usePathname();
+  const queryClient = useQueryClient();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -33,6 +35,7 @@ export function NavbarClient({ isLoggedIn, userRole, consoleUrl }: NavbarClientP
 
   const handleLogout = () => {
     startTransition(async () => {
+      queryClient.removeQueries({ queryKey: currentUserQueryKey });
       await logoutAction();
     });
   };

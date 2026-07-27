@@ -1,26 +1,23 @@
 import { cookies } from "next/headers";
+import { getCurrentUser } from "@/lib/auth/current-user";
+import { consoleForRole } from "@/lib/auth/roles";
 import { NavbarClient } from "./navbar-client";
 
 export async function Navbar() {
   const cookieStore = await cookies();
   const sessionToken =
     cookieStore.get("better-auth.session_token")?.value ||
+    cookieStore.get("__Secure-better-auth.session_token")?.value ||
     cookieStore.get("accessToken")?.value;
-  const userRole = cookieStore.get("userRole")?.value || null;
-  const isLoggedIn = !!sessionToken;
-
-  let consoleUrl = "/console";
-  if (userRole) {
-    const roleUpper = userRole.toUpperCase();
-    if (roleUpper === "CUSTOMER") consoleUrl = "/console/customer";
-    else if (roleUpper === "PROVIDER") consoleUrl = "/console/provider";
-    else if (roleUpper === "ADMIN") consoleUrl = "/console/admin";
-  }
+  const currentUser = sessionToken ? await getCurrentUser() : null;
+  const isLoggedIn = currentUser !== null;
+  const consoleUrl = currentUser
+    ? consoleForRole(currentUser.user.role)
+    : "/console";
 
   return (
     <NavbarClient
       isLoggedIn={isLoggedIn}
-      userRole={userRole}
       consoleUrl={consoleUrl}
     />
   );

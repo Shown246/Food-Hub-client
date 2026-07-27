@@ -2,6 +2,7 @@
 
 import { httpClient } from "@/lib/axios/httpClient";
 import { deleteCookie, getCookie } from "@/lib/cookieUtils";
+import { headers as getNextHeaders } from "next/headers";
 import { redirect } from "next/navigation";
 
 export const logoutAction = async (): Promise<void> => {
@@ -14,7 +15,16 @@ export const logoutAction = async (): Promise<void> => {
     if (sessionToken) cookieHeader.push(`better-auth.session_token=${sessionToken}`);
     if (accessToken) cookieHeader.push(`accessToken=${accessToken}`);
 
-    const headers: Record<string, string> = {};
+    const reqHeaders = await getNextHeaders();
+    const origin =
+      reqHeaders.get("origin") ||
+      (reqHeaders.get("host") ? `http://${reqHeaders.get("host")}` : undefined) ||
+      process.env.NEXT_PUBLIC_APP_URL ||
+      "http://localhost:3000";
+
+    const headers: Record<string, string> = {
+      Origin: origin,
+    };
     if (cookieHeader.length > 0) {
       headers["Cookie"] = cookieHeader.join("; ");
     }
