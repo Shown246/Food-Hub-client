@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth/current-user";
+import { getSessionIdentity } from "@/lib/auth/session-identity";
 import { consoleForRole } from "@/lib/auth/roles";
 
 export default async function DashboardPage() {
-  const currentUser = await getCurrentUser();
+  const currentUser = await getSessionIdentity();
   if (!currentUser) redirect("/login");
   redirect(consoleForRole(currentUser.user.role));
 }

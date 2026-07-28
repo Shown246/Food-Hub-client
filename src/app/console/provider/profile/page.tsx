@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  getCustomerProfile,
-  updateCustomerProfile,
+  getProviderProfile,
+  updateProfile,
   UpdateProfilePayload,
 } from '../_actions';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,7 +42,7 @@ export default function CustomerProfilePage() {
 
   const { data: profileResponse, isLoading, isError, refetch } = useQuery({
     queryKey: customerProfileQueryKey,
-    queryFn: getCustomerProfile,
+    queryFn: getProviderProfile,
   });
   const user =
     profileResponse?.success && profileResponse.data
@@ -61,7 +61,7 @@ export default function CustomerProfilePage() {
 
   // Mutation to update profile
   const updateMutation = useMutation({
-    mutationFn: (payload: UpdateProfilePayload) => updateCustomerProfile(payload),
+    mutationFn: (payload: UpdateProfilePayload) => updateProfile(payload),
     onSuccess: (res) => {
       if (res.success) {
         setFeedback({ type: 'success', message: 'Profile updated successfully!' });

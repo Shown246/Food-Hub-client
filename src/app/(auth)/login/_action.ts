@@ -6,6 +6,7 @@ import { ApiErrorResponse } from "@/types/api.type";
 import { ILoginResponse } from "@/types/auth.type";
 import { IloginPayload, loginZodSchema } from "@/zod/auth.validation";
 import { redirect } from "next/navigation";
+import { setSessionIdentity } from "@/lib/auth/session-identity";
 
 export const loginAction = async (payload: IloginPayload): Promise<ILoginResponse | ApiErrorResponse> => {
   const parseedPayload = loginZodSchema.safeParse(payload);
@@ -31,17 +32,21 @@ export const loginAction = async (payload: IloginPayload): Promise<ILoginRespons
     }
   }
   const { token, accessToken, refreshToken, user } = response.data;
+  if (!user) {
+    return {
+      success: false,
+      message: "User data not found",
+    };
+  }
   if(token){await setTokenInCookies("better-auth.session_token", token)}
   if(accessToken){await setTokenInCookies("accessToken", accessToken)}
   if(refreshToken){await setTokenInCookies("refreshToken", refreshToken)}
+  await setSessionIdentity({
+    user,
+    providerProfile: response.data.providerProfile,
+  });
 
-  const role = user?.role.toUpperCase();
-  if(!role) {
-    return {
-      success: false,
-      message: "User role not found"
-    }
-  }
+  const role = user.role.toUpperCase();
   switch (role) {
     case 'CUSTOMER':
       redirect("/console/customer");

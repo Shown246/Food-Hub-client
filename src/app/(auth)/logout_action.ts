@@ -4,6 +4,7 @@ import { httpClient } from "@/lib/axios/httpClient";
 import { deleteCookie, getCookie } from "@/lib/cookieUtils";
 import { headers as getNextHeaders } from "next/headers";
 import { redirect } from "next/navigation";
+import { deleteSessionIdentity } from "@/lib/auth/session-identity";
 
 export const logoutAction = async (): Promise<void> => {
   try {
@@ -40,6 +41,7 @@ export const logoutAction = async (): Promise<void> => {
     await deleteCookie("accessToken");
     await deleteCookie("refreshToken");
     await deleteCookie("userRole");
+    await deleteSessionIdentity();
     redirect("/login");
   }
 };

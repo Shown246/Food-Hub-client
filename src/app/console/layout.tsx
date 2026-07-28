@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { AppSidebar } from "@/components/app-sidebar";
-import { getCurrentUser } from "@/lib/auth/current-user";
+import { getSessionIdentity } from "@/lib/auth/session-identity";
 import { getQueryClient } from "@/lib/query-client";
 import { currentUserQueryKey } from "@/queries/current-user.query";
 import { Separator } from "@/components/ui/separator";
@@ -22,7 +22,7 @@ export default async function ConsoleLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const currentUser = await getCurrentUser();
+  const currentUser = await getSessionIdentity();
   if (!currentUser) redirect("/login");
 
   const queryClient = getQueryClient();

@@ -30,9 +30,9 @@ export interface OrderStatusHistory {
 export interface Order {
   id: string;
   orderNumber: string;
+  status: OrderStatus;
   customerId: string;
   providerId: string;
-  status: OrderStatus;
   subtotal: string | number;
   deliveryFee: string | number;
   taxFee: string | number;
@@ -48,6 +48,29 @@ export interface Order {
   provider?: OrderProviderSummary;
   items?: OrderItem[];
   statusHistory?: OrderStatusHistory[];
+}
+export interface ProviderOrder {
+  id: string;
+  orderNumber: string;
+  status: OrderStatus;
+  customerId: string;
+  providerId: string;
+  subtotal: string | number;
+  deliveryFee: string | number;
+  taxFee: string | number;
+  serviceFee: string | number;
+  total: string | number;
+  itemCount?: number;
+  customerPhone?: string | null;
+  deliveryAddress?: string | null;
+  deliveryInstructions?: string | null;
+  cancellationReason?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  provider?: OrderProviderSummary;
+  items?: OrderItem[];
+  statusHistory?: OrderStatusHistory[];
+  customerName: string;
 }
 
 export interface GetOrdersParams {

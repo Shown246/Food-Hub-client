@@ -1,15 +1,9 @@
-import { cookies } from "next/headers";
-import { getCurrentUser } from "@/lib/auth/current-user";
+import { getSessionIdentity } from "@/lib/auth/session-identity";
 import { consoleForRole } from "@/lib/auth/roles";
 import { NavbarClient } from "./navbar-client";
 
 export async function Navbar() {
-  const cookieStore = await cookies();
-  const sessionToken =
-    cookieStore.get("better-auth.session_token")?.value ||
-    cookieStore.get("__Secure-better-auth.session_token")?.value ||
-    cookieStore.get("accessToken")?.value;
-  const currentUser = sessionToken ? await getCurrentUser() : null;
+  const currentUser = await getSessionIdentity();
   const isLoggedIn = currentUser !== null;
   const consoleUrl = currentUser
     ? consoleForRole(currentUser.user.role)

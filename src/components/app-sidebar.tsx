@@ -63,6 +63,26 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       isActive: pathname.startsWith("/console/customer/profile"),
     },
   ];
+  const providerNavItems = [
+    {
+      title: "Orders",
+      url: "/console/provider/orders",
+      icon: ShoppingBagIcon,
+      isActive: pathname.startsWith("/console/provider/orders") || pathname === "/console/provider",
+    },
+    {
+      title: "Menu",
+      url: "/console/provider/menu",
+      icon: UtensilsIcon,
+      isActive: pathname.startsWith("/console/provider/menu") || pathname === "/console/provider",
+    },
+    {
+      title: "Profile",
+      url: "/console/provider/profile",
+      icon: UserIcon,
+      isActive: pathname.startsWith("/console/provider/profile"),
+    },
+  ];
 
   const navItems = user?.role === "ADMIN"
     ? [{
@@ -72,12 +92,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         isActive: pathname.startsWith("/console/admin"),
       }]
     : user?.role === "PROVIDER"
-      ? [{
-          title: "Provider dashboard",
-          url: "/console/provider",
-          icon: StoreIcon,
-          isActive: pathname.startsWith("/console/provider"),
-        }]
+      ? providerNavItems
       : customerNavItems;
 
   const portalName = user

@@ -4,11 +4,13 @@ export function proxy(request: NextRequest) {
   const token =
     request.cookies.get("better-auth.session_token")?.value ??
     request.cookies.get("__Secure-better-auth.session_token")?.value;
+  const identity = request.cookies.get("foodhub.session_identity")?.value;
+  const hasLocalSession = Boolean(token && identity);
   const { pathname } = request.nextUrl;
 
   // This is only a fast navigation guard. Server layouts and the backend
   // validate the session and role before protected content or data is used.
-  if (!token) {
+  if (!hasLocalSession) {
     if (pathname.startsWith("/console")) {
       return NextResponse.redirect(new URL("/login", request.url));
     }

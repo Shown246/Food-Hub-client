@@ -14,6 +14,14 @@ export interface CurrentUserData {
   providerProfile: ProviderProfile | null;
 }
 
+export interface SessionIdentityData {
+  user: Pick<
+    AuthUser,
+    "id" | "fullName" | "profileImageUrl" | "email" | "role" | "status"
+  >;
+  providerProfile: Pick<ProviderProfile, "id" | "name" | "logoUrl"> | null;
+}
+
 export interface AuthUser {
   id: string;
   fullName: string;

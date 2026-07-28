@@ -12,6 +12,7 @@ import {
 } from "@/zod/auth.validation";
 import { redirect } from "next/navigation";
 import axios from "axios";
+import { setSessionIdentity } from "@/lib/auth/session-identity";
 
 export const signupAction = async (
   payload: ISignupInput
@@ -81,6 +82,12 @@ export const signupAction = async (
     }
 
     const { token, accessToken, refreshToken, user } = response.data;
+    if (!user) {
+      return {
+        success: false,
+        message: "User data not found",
+      };
+    }
     if (token) {
       await setTokenInCookies("better-auth.session_token", token);
     }
@@ -90,8 +97,12 @@ export const signupAction = async (
     if (refreshToken) {
       await setTokenInCookies("refreshToken", refreshToken);
     }
+    await setSessionIdentity({
+      user,
+      providerProfile: response.data.providerProfile,
+    });
 
-    const role = user?.role?.toUpperCase();
+    const role = user.role.toUpperCase();
     switch (role) {
       case "CUSTOMER":
         redirect("/console/customer");

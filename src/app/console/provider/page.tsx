@@ -1,9 +1,5 @@
-import React from 'react'
+import { redirect } from 'next/navigation'
 
-const ProviderConsolePage = () => {
-  return (
-    <div>ProviderConsolePage</div>
-  )
+export default function ProviderConsolePage() {
+  return redirect("/console/provider/orders")
 }
-
-export default ProviderConsolePage
