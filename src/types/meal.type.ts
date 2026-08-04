@@ -14,11 +14,13 @@ export interface ProviderMeal{
   category: Category,
 }
 
-interface Category {
-  id: string,
-  name: string,
-  slug: string,
-  description: string | null,
-  displayOrder: number,
-  isActive: boolean
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  displayOrder?: number;
+  isActive?: boolean;
+  image?: string | null;
+  imageUrl?: string | null;
 }
