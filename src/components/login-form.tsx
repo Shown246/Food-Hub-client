@@ -64,6 +64,12 @@ export function LoginForm() {
           Enter your email below to login to your account
         </p>
       </div>
+      {/* Server Error Message */}
+      {serverError && (
+        <div className="p-3 text-sm rounded-md bg-destructive/15 text-destructive font-medium text-center">
+          {serverError}
+        </div>
+      )}
       <form.Field
         name="email"
         validators={{ onChange: loginZodSchema.shape.email }}

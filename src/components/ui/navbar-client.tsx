@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { LayoutDashboard, LogOut, Menu, ShoppingBag, X } from "lucide-react";
 import { useState, useTransition } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { motion } from "motion/react";
 
 import { cn } from "@/lib/utils";
 import { logoutAction } from "@/app/(auth)/logout_action";
@@ -71,13 +72,25 @@ export function NavbarClient({ isLoggedIn, consoleUrl }: NavbarClientProps) {
                 href={item.href}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/60",
+                  "relative rounded-full px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/60",
                   isActive
-                    ? "bg-white text-zinc-950 shadow-sm dark:bg-zinc-800 dark:text-white"
+                    ? "text-zinc-950 dark:text-white"
                     : "text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white",
                 )}
               >
-                {item.label}
+                {isActive && (
+                  <motion.span
+                    layoutId="navbar-active-tab"
+                    className="absolute inset-0 rounded-full bg-white shadow-sm dark:bg-zinc-800"
+                    transition={{
+                      type: "spring",
+                      stiffness: 380,
+                      damping: 30,
+                    }}
+                    aria-hidden="true"
+                  />
+                )}
+                <span className="relative z-10">{item.label}</span>
               </Link>
             );
           })}

@@ -24,3 +24,29 @@ export interface Category {
   image?: string | null;
   imageUrl?: string | null;
 }
+
+export interface MealProvider {
+  id: string;
+  name: string;
+  description?: string | null;
+  address?: string | null;
+  phone?: string | null;
+  logoUrl?: string | null;
+  openingHours?: string | null;
+  acceptingOrders?: boolean;
+  activeMealCount?: number;
+}
+
+export interface Meal {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  price: string | number;
+  imageUrl?: string | null;
+  dietaryLabels?: string[];
+  preparationTimeMinutes?: number;
+  isAvailable?: boolean;
+  createdAt?: string;
+  provider?: MealProvider;
+}

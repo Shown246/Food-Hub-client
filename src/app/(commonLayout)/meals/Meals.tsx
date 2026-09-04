@@ -7,31 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Clock, Store, ShoppingBag, Utensils, AlertCircle } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { Meal } from '@/types/meal.type';
 
-export interface MealProvider {
-  id: string;
-  name: string;
-  description?: string | null;
-  address?: string | null;
-  phone?: string | null;
-  logoUrl?: string | null;
-  openingHours?: string | null;
-  acceptingOrders?: boolean;
-}
-
-export interface Meal {
-  id: string;
-  name: string;
-  slug: string;
-  description: string;
-  price: string | number;
-  imageUrl?: string | null;
-  dietaryLabels?: string[];
-  preparationTimeMinutes?: number;
-  isAvailable?: boolean;
-  createdAt?: string;
-  provider?: MealProvider;
-}
 
 const MealCard = ({ meal }: { meal: Meal }) => {
   const formattedPrice =
@@ -163,9 +141,12 @@ const MealCardSkeleton = () => (
 );
 
 const Meals = () => {
+  const searchParams = useSearchParams();
+  const category = searchParams.get('category') || undefined;
+
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['meals'],
-    queryFn: getMeals,
+    queryKey: ['meals', category],
+    queryFn: () => getMeals(category ? { category } : undefined),
   });
 
   const rawData = data as any;
@@ -225,7 +206,9 @@ const Meals = () => {
           <Utensils className="size-12 text-muted-foreground/50" />
           <h3 className="text-lg font-semibold">No meals found</h3>
           <p className="text-sm text-muted-foreground max-w-md">
-            There are currently no meals available. Please check back later.
+            {category
+              ? 'There are currently no meals available in this category. Please check back later.'
+              : 'There are currently no meals available. Please check back later.'}
           </p>
         </div>
       )}

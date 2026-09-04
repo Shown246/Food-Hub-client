@@ -23,63 +23,65 @@ export interface ApiOptions {
   params?: Record<string, any>;
 }
 
-const httpGet = async <TData>(endpoint: string, options: ApiOptions): Promise<ApiResponse<TData>> => {
+const httpGet = async <TData>(endpoint: string, options?: ApiOptions): Promise<ApiResponse<TData>> => {
   try {
     const response = await axiosInstance().get<ApiResponse<TData>>(endpoint, { 
         params: options?.params, 
         headers: options?.headers });
     return response.data;
   } catch (error) {
-    console.error(`GET request to ${endpoint} failed:`, error);
+    console.error(`GET request to ${endpoint} failed:`, (error as any)?.message || error);
     throw error;
   }
 };
 
-const httpPost = async<TData> (endpoint: string, data: unknown, options: ApiOptions): Promise<ApiResponse<TData>> => {
+const httpPost = async <TData>(endpoint: string, data?: unknown, options?: ApiOptions): Promise<ApiResponse<TData>> => {
   try {
     const response = await axiosInstance().post<ApiResponse<TData>>(endpoint, data, { 
         params: options?.params, 
         headers: options?.headers });
     return response.data;
   } catch (error) {
-    console.error(`POST request to ${endpoint} failed:`, error);
+    console.error(`POST request to ${endpoint} failed:`, (error as any)?.message || error);
     throw error;
   }
-}
+};
 
-const httpPut = async<TData> (endpoint: string, data: unknown, options: ApiOptions): Promise<ApiResponse<TData>> => {
+const httpPut = async <TData>(endpoint: string, data?: unknown, options?: ApiOptions): Promise<ApiResponse<TData>> => {
   try {
     const response = await axiosInstance().put<ApiResponse<TData>>(endpoint, data, { 
         params: options?.params, 
         headers: options?.headers });
     return response.data;
   } catch (error) {
-    console.error(`PUT request to ${endpoint} failed:`, error);
+    console.error(`PUT request to ${endpoint} failed:`, (error as any)?.message || error);
     throw error;
   }
-}
-const httpPatch = async<TData> (endpoint: string, data: unknown, options: ApiOptions): Promise<ApiResponse<TData>> => {
+};
+
+const httpPatch = async <TData>(endpoint: string, data?: unknown, options?: ApiOptions): Promise<ApiResponse<TData>> => {
   try {
     const response = await axiosInstance().patch<ApiResponse<TData>>(endpoint, data, { 
         params: options?.params, 
         headers: options?.headers });
     return response.data;
   } catch (error) {
-    console.error(`PATCH request to ${endpoint} failed:`, error);
+    console.error(`PATCH request to ${endpoint} failed:`, (error as any)?.message || error);
     throw error;
   }
-}
-const httpDelete = async<TData> (endpoint: string, options: ApiOptions): Promise<ApiResponse<TData>> => {
+};
+
+const httpDelete = async <TData>(endpoint: string, options?: ApiOptions): Promise<ApiResponse<TData>> => {
   try {
     const response = await axiosInstance().delete<ApiResponse<TData>>(endpoint, { 
         params: options?.params, 
         headers: options?.headers });
     return response.data;
   } catch (error) {
-    console.error(`DELETE request to ${endpoint} failed:`, error);
+    console.error(`DELETE request to ${endpoint} failed:`, (error as any)?.message || error);
     throw error;
   }
-}
+};
 export const httpClient = {
   get: httpGet,
   post: httpPost,

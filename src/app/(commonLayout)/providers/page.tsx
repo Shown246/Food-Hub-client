@@ -1,10 +1,18 @@
-const ProvidersPage = () => {
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold">Providers</h1>
-      <p className="text-muted-foreground mt-2">Food Hub provider partners.</p>
-    </div>
-  );
-};
+import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
+import { getProviders } from './_action';
+import Providers from './Providers';
 
-export default ProvidersPage;
+const ProvidersPage = async () => {
+  const queryClient = new QueryClient();
+  await queryClient.prefetchQuery({
+    queryKey: ['providers'],
+    queryFn: getProviders,
+  });
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <Providers />
+    </HydrationBoundary>
+  )
+}
+
+export default ProvidersPage
