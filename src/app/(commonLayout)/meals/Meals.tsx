@@ -7,11 +7,23 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Clock, Store, ShoppingBag, Utensils, AlertCircle } from 'lucide-react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Meal } from '@/types/meal.type';
+import { currentUserQueryOptions } from '@/queries/current-user.query';
+import { useCart } from '@/context/cart-context';
+import React, { useEffect, useMemo } from 'react';
+import { cn } from '@/lib/utils';
 
 
-const MealCard = ({ meal }: { meal: Meal }) => {
+const MealCard = ({
+  meal,
+  onAddToOrder,
+  cartQuantity,
+}: {
+  meal: Meal;
+  onAddToOrder: (meal: Meal) => void;
+  cartQuantity?: number;
+}) => {
   const formattedPrice =
     typeof meal.price === 'number'
       ? meal.price.toFixed(2)
@@ -112,11 +124,18 @@ const MealCard = ({ meal }: { meal: Meal }) => {
 
         <Button
           size="sm"
-          className="gap-2 font-medium rounded-xl shadow-xs"
+          type="button"
+          onClick={() => onAddToOrder(meal)}
+          className={cn(
+            "gap-2 font-medium rounded-xl shadow-xs transition-all",
+            cartQuantity && cartQuantity > 0
+              ? "bg-orange-500 hover:bg-orange-600 text-white"
+              : "bg-primary hover:bg-primary/90 text-primary-foreground"
+          )}
           disabled={meal.isAvailable === false}
         >
           <ShoppingBag className="size-4" />
-          <span>Add to Order</span>
+          <span>{cartQuantity && cartQuantity > 0 ? `In Order (${cartQuantity})` : 'Add to Order'}</span>
         </Button>
       </CardFooter>
     </Card>
@@ -141,8 +160,13 @@ const MealCardSkeleton = () => (
 );
 
 const Meals = () => {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const category = searchParams.get('category') || undefined;
+
+  const { data: currentUserData } = useQuery(currentUserQueryOptions);
+  const isLoggedIn = !!currentUserData?.user;
+  const { items, openCustomizationModal } = useCart();
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['meals', category],
@@ -157,6 +181,42 @@ const Meals = () => {
     : Array.isArray(rawData?.data?.data)
     ? rawData.data.data
     : [];
+
+  // If user was redirected to login and returned, automatically open customization for their pending meal
+  useEffect(() => {
+    if (isLoggedIn) {
+      try {
+        const pending = sessionStorage.getItem('foodhub_pending_meal');
+        if (pending) {
+          const pendingMeal = JSON.parse(pending) as Meal;
+          sessionStorage.removeItem('foodhub_pending_meal');
+          openCustomizationModal(pendingMeal);
+        }
+      } catch (e) {
+        sessionStorage.removeItem('foodhub_pending_meal');
+      }
+    }
+  }, [isLoggedIn, openCustomizationModal]);
+
+  const handleAddToOrder = (meal: Meal) => {
+    if (!isLoggedIn) {
+      try {
+        sessionStorage.setItem('foodhub_pending_meal', JSON.stringify(meal));
+      } catch {}
+      router.push('/login?callbackUrl=/meals');
+      return;
+    }
+
+    openCustomizationModal(meal);
+  };
+
+  const cartItemMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const item of items) {
+      map.set(item.meal.id, item.quantity);
+    }
+    return map;
+  }, [items]);
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8 max-w-7xl">
@@ -217,7 +277,12 @@ const Meals = () => {
       {!isLoading && !isError && mealsList.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {mealsList.map((meal) => (
-            <MealCard key={meal.id} meal={meal} />
+            <MealCard
+              key={meal.id}
+              meal={meal}
+              onAddToOrder={handleAddToOrder}
+              cartQuantity={cartItemMap.get(meal.id)}
+            />
           ))}
         </div>
       )}

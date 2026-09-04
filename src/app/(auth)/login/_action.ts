@@ -8,7 +8,10 @@ import { IloginPayload, loginZodSchema } from "@/zod/auth.validation";
 import { redirect } from "next/navigation";
 import { setSessionIdentity } from "@/lib/auth/session-identity";
 
-export const loginAction = async (payload: IloginPayload): Promise<ILoginResponse | ApiErrorResponse> => {
+export const loginAction = async (
+  payload: IloginPayload,
+  callbackUrl?: string | null
+): Promise<ILoginResponse | ApiErrorResponse> => {
   const parseedPayload = loginZodSchema.safeParse(payload);
   if (!parseedPayload.success) {
     const firstError = parseedPayload.error.issues[0].message || "Invalid Input";
@@ -45,6 +48,10 @@ export const loginAction = async (payload: IloginPayload): Promise<ILoginRespons
     user,
     providerProfile: response.data.providerProfile,
   });
+
+  if (callbackUrl && callbackUrl.startsWith("/") && !callbackUrl.startsWith("//")) {
+    redirect(callbackUrl);
+  }
 
   const role = user.role.toUpperCase();
   switch (role) {

@@ -98,3 +98,29 @@ export const cancelCustomerOrder = async (
     };
   }
 };
+
+export interface CreateCustomerOrderPayload {
+  items: {
+    mealId: string;
+    quantity: number;
+    note?: string;
+  }[];
+  customerPhone: string;
+  deliveryAddress: string;
+  deliveryInstructions?: string | null;
+}
+
+export const createCustomerOrder = async (
+  payload: CreateCustomerOrderPayload
+): Promise<ApiResponse<Order> | ApiErrorResponse> => {
+  try {
+    const headers = await getBackendAuthHeaders();
+    const response = await httpClient.post<Order>("/api/orders", payload, { headers });
+    return response;
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error?.response?.data?.message || "Failed to place order",
+    };
+  }
+};

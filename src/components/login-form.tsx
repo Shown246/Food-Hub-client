@@ -15,14 +15,17 @@ import { useMutation } from "@tanstack/react-query"
 import { useForm } from "@tanstack/react-form";
 import { useState } from "react";
 import Link from "next/link"
+import { useSearchParams } from "next/navigation";
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 import { loginAction } from "@/app/(auth)/login/_action";
 import { Loader2 } from "lucide-react";
 
 export function LoginForm() {
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl");
   const [serverError, setServerError] = useState<string | null>(null);
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: (payload: IloginPayload) => loginAction(payload)
+    mutationFn: (payload: IloginPayload) => loginAction(payload, callbackUrl)
   })
   const form = useForm({
     defaultValues: {
