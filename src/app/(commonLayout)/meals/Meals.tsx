@@ -162,15 +162,16 @@ const MealCardSkeleton = () => (
 const Meals = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const category = searchParams.get('category') || undefined;
+  const category = searchParams.get('category') || searchParams.get('categorySlug') || undefined;
+  const provider = searchParams.get('provider') || searchParams.get('providerId') || undefined;
 
   const { data: currentUserData } = useQuery(currentUserQueryOptions);
   const isLoggedIn = !!currentUserData?.user;
   const { items, openCustomizationModal } = useCart();
 
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['meals', category],
-    queryFn: () => getMeals(category ? { category } : undefined),
+    queryKey: ['meals', { category, provider }],
+    queryFn: () => getMeals({ category, provider }),
   });
 
   const rawData = data as any;
@@ -266,7 +267,9 @@ const Meals = () => {
           <Utensils className="size-12 text-muted-foreground/50" />
           <h3 className="text-lg font-semibold">No meals found</h3>
           <p className="text-sm text-muted-foreground max-w-md">
-            {category
+            {provider
+              ? 'There are currently no meals available for this provider. Please check back later.'
+              : category
               ? 'There are currently no meals available in this category. Please check back later.'
               : 'There are currently no meals available. Please check back later.'}
           </p>

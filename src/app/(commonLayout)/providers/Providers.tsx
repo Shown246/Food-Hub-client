@@ -5,10 +5,11 @@ import { useQuery } from '@tanstack/react-query';
 import { getProviders } from './_action';
 import { Card, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Store, MapPin, Phone, Clock, Utensils, AlertCircle, ArrowRight } from 'lucide-react';
 import { MealProvider } from '@/types/meal.type';
+import { cn } from '@/lib/utils';
 
 const ProviderCard = ({ provider }: { provider: MealProvider }) => {
   const isAccepting = provider.acceptingOrders !== false;
@@ -98,15 +99,16 @@ const ProviderCard = ({ provider }: { provider: MealProvider }) => {
 
       {/* Card Footer: Action */}
       <CardFooter className="p-5 pt-0 flex items-center justify-between gap-3 border-t border-border/40 mt-auto">
-        <Button
-          size="sm"
-          className="w-full gap-2 font-medium rounded-xl shadow-xs group-hover:bg-primary/90"
+        <Link
+          href={`/meals?provider=${provider.id}`}
+          className={cn(
+            buttonVariants({ size: "sm" }),
+            "w-full gap-2 font-medium rounded-xl shadow-xs group-hover:bg-primary/90 flex items-center justify-center"
+          )}
         >
-          <Link href={`/meals?provider=${provider.id}`} className="flex items-center justify-center gap-2 w-full">
-            <span>View Menu</span>
-            <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
-          </Link>
-        </Button>
+          <span>View Menu</span>
+          <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+        </Link>
       </CardFooter>
     </Card>
   );

@@ -12,12 +12,20 @@ const MealsPage = async ({ searchParams }: MealsPageProps) => {
   const category =
     typeof resolvedParams?.category === 'string'
       ? resolvedParams.category
+      : typeof resolvedParams?.categorySlug === 'string'
+      ? resolvedParams.categorySlug
+      : undefined;
+  const provider =
+    typeof resolvedParams?.provider === 'string'
+      ? resolvedParams.provider
+      : typeof resolvedParams?.providerId === 'string'
+      ? resolvedParams.providerId
       : undefined;
 
   const queryClient = new QueryClient();
   await queryClient.prefetchQuery({
-    queryKey: ['meals', category],
-    queryFn: () => getMeals(category ? { category } : undefined),
+    queryKey: ['meals', { category, provider }],
+    queryFn: () => getMeals({ category, provider }),
   });
 
   return (
