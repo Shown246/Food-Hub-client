@@ -2,8 +2,8 @@
 
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getOrders, getOrderById, cancelOrder } from '../_actions';
-import { Order, OrderStatus } from '@/types/order.type';
+import { getOrders, getOrderById, updateOrderStatus } from '../_actions';
+import { Order, OrderStatus, ProviderOrder } from '@/types/order.type';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,6 @@ import {
   CheckCircle2,
   XCircle,
   Eye,
-  Ban,
   RefreshCw,
   ChevronRight,
   Receipt,
@@ -26,7 +25,49 @@ import {
   Calendar,
   Loader2,
   X,
+  ChefHat,
+  PackageCheck,
+  Truck,
+  User,
+  Check,
 } from 'lucide-react';
+
+interface NextStatusConfig {
+  nextStatus: OrderStatus;
+  label: string;
+  inFlightText: string;
+  icon: React.ComponentType<{ className?: string }>;
+  buttonClass: string;
+}
+
+const NEXT_STATUS_CONFIG: Record<OrderStatus, NextStatusConfig | null> = {
+  PLACED: {
+    nextStatus: 'PREPARING',
+    label: 'Start Preparing',
+    inFlightText: 'Starting...',
+    icon: ChefHat,
+    buttonClass:
+      'bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-600 dark:hover:bg-amber-500 shadow-xs border-transparent',
+  },
+  PREPARING: {
+    nextStatus: 'READY',
+    label: 'Mark as Ready',
+    inFlightText: 'Marking Ready...',
+    icon: PackageCheck,
+    buttonClass:
+      'bg-purple-600 hover:bg-purple-700 text-white dark:bg-purple-600 dark:hover:bg-purple-500 shadow-xs border-transparent',
+  },
+  READY: {
+    nextStatus: 'DELIVERED',
+    label: 'Mark as Delivered',
+    inFlightText: 'Delivering...',
+    icon: Truck,
+    buttonClass:
+      'bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-600 dark:hover:bg-emerald-500 shadow-xs border-transparent',
+  },
+  DELIVERED: null,
+  CANCELLED: null,
+};
 
 const STATUS_OPTIONS: { label: string; value: string }[] = [
   { label: 'All Orders', value: '' },
@@ -86,8 +127,8 @@ export default function ProviderOrdersPage() {
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [selectedSort, setSelectedSort] = useState<string>('newest');
   const [activeOrderId, setActiveOrderId] = useState<string | null>(null);
-  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
-  const [cancelReason, setCancelReason] = useState<string>('');
+  const [mutatingOrderId, setMutatingOrderId] = useState<string | null>(null);
+  const [confirmDeliverOrder, setConfirmDeliverOrder] = useState<Order | ProviderOrder | null>(null);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Fetch orders list
@@ -95,6 +136,7 @@ export default function ProviderOrdersPage() {
     queryKey: ['provider-orders'],
     queryFn: () => getOrders(),
   });
+
   // Fetch detailed order if modal opened
   const { data: detailRes, isLoading: isDetailLoading } = useQuery({
     queryKey: ['provider-order-detail', activeOrderId],
@@ -102,29 +144,59 @@ export default function ProviderOrdersPage() {
     enabled: !!activeOrderId,
   });
 
-  // Cancel order mutation
-  const cancelMutation = useMutation({
-    mutationFn: ({ orderId, reason }: { orderId: string; reason: string }) =>
-      cancelOrder(orderId, reason),
-    onSuccess: (res) => {
+  // Order status transition mutation
+  const statusMutation = useMutation({
+    mutationFn: ({ orderId, status }: { orderId: string; status: OrderStatus }) =>
+      updateOrderStatus(orderId, status),
+    onSuccess: (res, variables) => {
       if (res.success) {
-        setFeedback({ type: 'success', message: 'Order has been cancelled successfully.' });
-        setCancellingOrderId(null);
-        setCancelReason('');
+        setFeedback({
+          type: 'success',
+          message: `Order status updated to "${variables.status.toLowerCase()}".`,
+        });
+        setConfirmDeliverOrder(null);
         queryClient.invalidateQueries({ queryKey: ['provider-orders'] });
         queryClient.invalidateQueries({ queryKey: ['provider-order-detail'] });
-        setTimeout(() => setFeedback(null), 4000);
+        setTimeout(() => setFeedback(null), 4500);
       } else {
-        setFeedback({ type: 'error', message: res.message || 'Failed to cancel order.' });
+        setFeedback({
+          type: 'error',
+          message: res.message || 'Failed to update order status.',
+        });
       }
     },
     onError: (err: any) => {
-      setFeedback({ type: 'error', message: err?.message || 'Error cancelling order.' });
+      setFeedback({
+        type: 'error',
+        message: err?.message || 'An error occurred while updating order status.',
+      });
+    },
+    onSettled: () => {
+      setMutatingOrderId(null);
     },
   });
 
-  const ordersList: Order[] = useMemo(() => {
-    const raw: Order[] =
+  const handleStatusAdvance = (order: Order | ProviderOrder) => {
+    const config = NEXT_STATUS_CONFIG[order.status];
+    if (!config) return;
+
+    if (config.nextStatus === 'DELIVERED') {
+      setConfirmDeliverOrder(order);
+      return;
+    }
+
+    setMutatingOrderId(order.id);
+    statusMutation.mutate({ orderId: order.id, status: config.nextStatus });
+  };
+
+  const handleConfirmDelivery = () => {
+    if (!confirmDeliverOrder) return;
+    setMutatingOrderId(confirmDeliverOrder.id);
+    statusMutation.mutate({ orderId: confirmDeliverOrder.id, status: 'DELIVERED' });
+  };
+
+  const ordersList: (Order | ProviderOrder)[] = useMemo(() => {
+    const raw: (Order | ProviderOrder)[] =
       ordersRes && ordersRes.success
         ? Array.isArray(ordersRes.data)
           ? ordersRes.data
@@ -180,20 +252,30 @@ export default function ProviderOrdersPage() {
       {/* Feedback Alert */}
       {feedback && (
         <div
-          className={`flex items-center gap-3 p-4 rounded-xl text-sm font-medium border ${
+          className={`flex items-center justify-between gap-3 p-4 rounded-xl text-sm font-medium border transition-all animate-in fade-in duration-200 ${
             feedback.type === 'success'
               ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
               : 'bg-destructive/10 text-destructive border-destructive/20'
           }`}
         >
-          {feedback.type === 'success' ? (
-            <CheckCircle2 className="size-5 shrink-0" />
-          ) : (
-            <AlertCircle className="size-5 shrink-0" />
-          )}
-          <span>{feedback.message}</span>
+          <div className="flex items-center gap-2.5">
+            {feedback.type === 'success' ? (
+              <CheckCircle2 className="size-5 shrink-0" />
+            ) : (
+              <AlertCircle className="size-5 shrink-0" />
+            )}
+            <span>{feedback.message}</span>
+          </div>
+          <button
+            onClick={() => setFeedback(null)}
+            className="text-muted-foreground hover:text-foreground rounded-lg p-1 transition-colors"
+            aria-label="Dismiss alert"
+          >
+            <X className="size-4" />
+          </button>
         </div>
       )}
+
 
       {/* Toolbar: Status Filter Pills & Sort Dropdown */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-4 rounded-2xl border border-border/60 shadow-xs">
@@ -296,7 +378,14 @@ export default function ProviderOrdersPage() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-y-1.5 gap-x-6 text-xs text-muted-foreground font-medium">
-                      {order.provider?.name && (
+                      {((order as any).customerName) && (
+                        <div className="flex items-center gap-1.5 text-foreground font-semibold">
+                          <User className="size-3.5 text-primary shrink-0" />
+                          <span>{(order as any).customerName}</span>
+                        </div>
+                      )}
+
+                      {order.provider?.name && !((order as any).customerName) && (
                         <div className="flex items-center gap-1.5 text-foreground">
                           <Store className="size-3.5 text-primary shrink-0" />
                           <span>{order.provider.name}</span>
@@ -333,6 +422,36 @@ export default function ProviderOrdersPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
+                      {/* Contextual Next Status Action Button */}
+                      {(() => {
+                        const nextConfig = NEXT_STATUS_CONFIG[order.status];
+                        if (!nextConfig) return null;
+                        const NextIcon = nextConfig.icon;
+                        const isCurrentMutating =
+                          statusMutation.isPending && mutatingOrderId === order.id;
+
+                        return (
+                          <Button
+                            size="sm"
+                            disabled={statusMutation.isPending}
+                            onClick={() => handleStatusAdvance(order)}
+                            className={`gap-1.5 font-medium rounded-xl text-xs transition-all ${nextConfig.buttonClass}`}
+                          >
+                            {isCurrentMutating ? (
+                              <>
+                                <Loader2 className="size-3.5 animate-spin" />
+                                <span>{nextConfig.inFlightText}</span>
+                              </>
+                            ) : (
+                              <>
+                                <NextIcon className="size-3.5" />
+                                <span>{nextConfig.label}</span>
+                              </>
+                            )}
+                          </Button>
+                        );
+                      })()}
+
                       <Button
                         variant="secondary"
                         size="sm"
@@ -342,21 +461,6 @@ export default function ProviderOrdersPage() {
                         <Eye className="size-3.5" />
                         <span>Details</span>
                       </Button>
-
-                      {order.status === 'PLACED' && (
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => {
-                            setCancellingOrderId(order.id);
-                            setCancelReason('');
-                          }}
-                          className="gap-1.5 font-medium rounded-xl text-xs"
-                        >
-                          <Ban className="size-3.5" />
-                          <span>Cancel</span>
-                        </Button>
-                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -398,13 +502,73 @@ export default function ProviderOrdersPage() {
               </div>
             ) : (
               <div className="space-y-6">
-                {/* Status Banner */}
-                <div className="flex items-center justify-between p-4 rounded-xl bg-muted/40 border border-border/40">
-                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    Status
-                  </span>
-                  <div>{getStatusBadge(detailedOrder.status)}</div>
-                </div>
+                {/* Fulfilment Progress & Status */}
+                {detailedOrder.status === 'CANCELLED' ? (
+                  <div className="flex items-center gap-3 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400">
+                    <XCircle className="size-5 shrink-0" />
+                    <div>
+                      <p className="font-semibold text-sm">Order Cancelled</p>
+                      {detailedOrder.cancellationReason && (
+                        <p className="text-xs text-rose-500/90 mt-0.5">
+                          Reason: {detailedOrder.cancellationReason}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-xl bg-muted/30 border border-border/50 space-y-3">
+                    <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      <span>Fulfilment Progress</span>
+                      <div>{getStatusBadge(detailedOrder.status)}</div>
+                    </div>
+                    <div className="grid grid-cols-4 gap-2 pt-1">
+                      {(['PLACED', 'PREPARING', 'READY', 'DELIVERED'] as OrderStatus[]).map((step, idx) => {
+                        const stepSequence: OrderStatus[] = ['PLACED', 'PREPARING', 'READY', 'DELIVERED'];
+                        const currentIdx = stepSequence.indexOf(detailedOrder.status);
+                        const isCompleted = idx < currentIdx;
+                        const isCurrent = idx === currentIdx;
+                        const stepLabels: Record<OrderStatus, string> = {
+                          PLACED: 'Placed',
+                          PREPARING: 'Preparing',
+                          READY: 'Ready',
+                          DELIVERED: 'Delivered',
+                          CANCELLED: 'Cancelled',
+                        };
+
+                        return (
+                          <div key={step} className="flex flex-col items-center text-center gap-1.5">
+                            <div
+                              className={`size-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                                isCompleted
+                                  ? 'bg-emerald-500 text-white shadow-xs'
+                                  : isCurrent
+                                  ? 'bg-primary text-primary-foreground ring-2 ring-primary/30 ring-offset-1 ring-offset-background'
+                                  : 'bg-muted text-muted-foreground border border-border/60'
+                              }`}
+                            >
+                              {isCompleted ? (
+                                <Check className="size-3.5 stroke-[3]" />
+                              ) : (
+                                <span>{idx + 1}</span>
+                              )}
+                            </div>
+                            <span
+                              className={`text-[11px] font-medium leading-tight ${
+                                isCurrent
+                                  ? 'text-primary font-bold'
+                                  : isCompleted
+                                  ? 'text-foreground'
+                                  : 'text-muted-foreground'
+                              }`}
+                            >
+                              {stepLabels[step]}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {/* Provider Information */}
                 {detailedOrder.provider && (
@@ -514,8 +678,38 @@ export default function ProviderOrdersPage() {
               </div>
             )}
 
-            <div className="flex justify-end pt-2 border-t border-border/40">
-              <Button variant="outline" onClick={() => setActiveOrderId(null)} className="rounded-xl">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-border/40">
+              <div>
+                {detailedOrder && (() => {
+                  const nextConfig = NEXT_STATUS_CONFIG[detailedOrder.status];
+                  if (!nextConfig) return null;
+                  const NextIcon = nextConfig.icon;
+                  const isCurrentMutating =
+                    statusMutation.isPending && mutatingOrderId === detailedOrder.id;
+
+                  return (
+                    <Button
+                      disabled={statusMutation.isPending}
+                      onClick={() => handleStatusAdvance(detailedOrder)}
+                      className={`gap-2 font-medium rounded-xl text-xs transition-all ${nextConfig.buttonClass}`}
+                    >
+                      {isCurrentMutating ? (
+                        <>
+                          <Loader2 className="size-3.5 animate-spin" />
+                          <span>{nextConfig.inFlightText}</span>
+                        </>
+                      ) : (
+                        <>
+                          <NextIcon className="size-4" />
+                          <span>{nextConfig.label}</span>
+                        </>
+                      )}
+                    </Button>
+                  );
+                })()}
+              </div>
+
+              <Button variant="outline" onClick={() => setActiveOrderId(null)} className="rounded-xl text-xs">
                 Close
               </Button>
             </div>
@@ -523,61 +717,84 @@ export default function ProviderOrdersPage() {
         </div>
       )}
 
-      {/* CANCEL CONFIRMATION MODAL */}
-      {cancellingOrderId && (
+      {/* CONFIRM DELIVER MODAL */}
+      {confirmDeliverOrder && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-card border border-border rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-6">
-            <div className="flex items-center gap-3 text-destructive">
-              <Ban className="size-6 shrink-0" />
-              <h3 className="font-bold text-lg text-foreground">Cancel Order</h3>
+          <div className="bg-card border border-border rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-5 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3">
+              <div className="size-11 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                <Truck className="size-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg text-foreground">Confirm Order Delivery</h3>
+                <p className="text-xs text-muted-foreground">
+                  {confirmDeliverOrder.orderNumber || `Order #${confirmDeliverOrder.id.slice(0, 8)}`}
+                </p>
+              </div>
             </div>
 
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Are you sure you want to cancel this order? You can optionally provide a reason below.
+              Are you sure you want to mark this order as <strong className="text-foreground">Delivered</strong>?
+              This completes fulfilment of the order and cannot be undone.
             </p>
 
-            <div className="space-y-2">
-              <label htmlFor="cancelReason" className="text-xs font-semibold text-foreground block">
-                Reason for Cancellation (Optional)
-              </label>
-              <textarea
-                id="cancelReason"
-                rows={3}
-                placeholder="e.g. Changed my mind, ordered by mistake..."
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                className="w-full rounded-xl border border-border/80 bg-background px-3 py-2 text-sm focus:outline-hidden focus:ring-2 focus:ring-primary resize-none"
-              />
+            <div className="p-3.5 rounded-xl bg-muted/40 border border-border/50 text-xs space-y-1.5">
+              <div className="flex justify-between text-muted-foreground">
+                <span>Customer</span>
+                <span className="font-medium text-foreground">
+                  {(confirmDeliverOrder as any).customerName || 'Customer'}
+                </span>
+              </div>
+              <div className="flex justify-between text-muted-foreground">
+                <span>Total Amount</span>
+                <span className="font-bold text-primary">
+                  ৳
+                  {typeof confirmDeliverOrder.total === 'number'
+                    ? confirmDeliverOrder.total.toFixed(2)
+                    : parseFloat(confirmDeliverOrder.total || '0').toFixed(2)}
+                </span>
+              </div>
+              {confirmDeliverOrder.deliveryAddress && (
+                <div className="flex justify-between text-muted-foreground pt-1 border-t border-border/40">
+                  <span className="shrink-0 mr-2">Address</span>
+                  <span className="font-medium text-foreground text-right truncate">
+                    {confirmDeliverOrder.deliveryAddress}
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-2">
               <Button
                 variant="outline"
-                onClick={() => setCancellingOrderId(null)}
-                disabled={cancelMutation.isPending}
-                className="rounded-xl"
+                onClick={() => setConfirmDeliverOrder(null)}
+                disabled={statusMutation.isPending}
+                className="rounded-xl text-xs"
               >
-                Keep Order
+                Cancel
               </Button>
               <Button
-                variant="destructive"
-                disabled={cancelMutation.isPending}
-                onClick={() => cancelMutation.mutate({ orderId: cancellingOrderId, reason: cancelReason.trim() })}
-                className="gap-2 rounded-xl font-semibold"
+                disabled={statusMutation.isPending}
+                onClick={handleConfirmDelivery}
+                className="gap-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-600 dark:hover:bg-emerald-500"
               >
-                {cancelMutation.isPending ? (
+                {statusMutation.isPending ? (
                   <>
-                    <Loader2 className="size-4 animate-spin" />
-                    <span>Cancelling...</span>
+                    <Loader2 className="size-3.5 animate-spin" />
+                    <span>Delivering...</span>
                   </>
                 ) : (
-                  <span>Confirm Cancellation</span>
+                  <>
+                    <CheckCircle2 className="size-3.5" />
+                    <span>Yes, Mark Delivered</span>
+                  </>
                 )}
               </Button>
             </div>
           </div>
         </div>
       )}
+
     </div>
   );
 }

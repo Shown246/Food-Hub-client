@@ -4,7 +4,7 @@ import { httpClient } from "@/lib/axios/httpClient";
 import { getBackendAuthHeaders } from "@/lib/auth/backend-auth-headers";
 import { ApiErrorResponse, ApiResponse } from "@/types/api.type";
 import { AuthUser } from "@/types/auth.type";
-import { GetOrdersParams, Order, ProviderOrder } from "@/types/order.type";
+import { GetOrdersParams, Order, OrderStatus, ProviderOrder } from "@/types/order.type";
 import { logoutAction as authLogoutAction } from "@/app/(auth)/logout_action";
 import { setSessionIdentity } from "@/lib/auth/session-identity";
 import { ProviderMeal } from "@/types/meal.type";
@@ -59,7 +59,7 @@ export const getOrders = async (
 ): Promise<ApiResponse<{ orders: ProviderOrder[]; meta?: any }> | ApiErrorResponse> => {
   try {
     const headers = await getBackendAuthHeaders();
-    const response = await httpClient.get< {orders: ProviderOrder[]}>("/api/provider/orders", { headers });
+    const response = await httpClient.get<{ orders: ProviderOrder[]; meta?: any }>("/api/provider/orders", { params, headers });
     return response;
   } catch (error: any) {
     return {
@@ -84,18 +84,22 @@ export const getOrderById = async (
   }
 };
 
-export const cancelOrder = async (
+export const updateOrderStatus = async (
   orderId: string,
-  reason?: string
+  status: OrderStatus
 ): Promise<ApiResponse<Order> | ApiErrorResponse> => {
   try {
     const headers = await getBackendAuthHeaders();
-    const response = await httpClient.patch<Order>(`/api/orders/${orderId}/cancel`, { reason }, { headers });
+    const response = await httpClient.patch<Order>(
+      `/api/provider/orders/${orderId}/status`,
+      { status },
+      { headers }
+    );
     return response;
   } catch (error: any) {
     return {
       success: false,
-      message: error?.response?.data?.message || "Failed to cancel order",
+      message: error?.response?.data?.message || "Failed to update order status",
     };
   }
 };
