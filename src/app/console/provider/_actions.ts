@@ -3,7 +3,7 @@
 import { httpClient } from "@/lib/axios/httpClient";
 import { getBackendAuthHeaders } from "@/lib/auth/backend-auth-headers";
 import { ApiErrorResponse, ApiResponse } from "@/types/api.type";
-import { AuthUser } from "@/types/auth.type";
+import { AuthUser, CurrentUserData, ProviderProfile } from "@/types/auth.type";
 import { GetOrdersParams, Order, OrderStatus, ProviderOrder } from "@/types/order.type";
 import { logoutAction as authLogoutAction } from "@/app/(auth)/logout_action";
 import { setSessionIdentity } from "@/lib/auth/session-identity";
@@ -24,10 +24,10 @@ export const logoutAction = async (): Promise<void> => {
   await authLogoutAction();
 };
 
-export const getProviderProfile = async (): Promise<ApiResponse<{ user: AuthUser }> | ApiErrorResponse> => {
+export const getProviderProfile = async (): Promise<ApiResponse<CurrentUserData> | ApiErrorResponse> => {
   try {
     const headers = await getBackendAuthHeaders();
-    const response = await httpClient.get<{ user: AuthUser }>("/api/profile", { headers });
+    const response = await httpClient.get<CurrentUserData>("/api/profile", { headers });
     return response;
   } catch (error: any) {
     return {
@@ -46,14 +46,14 @@ export interface UpdateProfilePayload {
 
 export const updateProfile = async (
   payload: UpdateProfilePayload
-): Promise<ApiResponse<{ user: AuthUser }> | ApiErrorResponse> => {
+): Promise<ApiResponse<CurrentUserData> | ApiErrorResponse> => {
   try {
     const headers = await getBackendAuthHeaders();
-    const response = await httpClient.patch<{ user: AuthUser }>("/api/profile", payload, { headers });
+    const response = await httpClient.patch<CurrentUserData>("/api/profile", payload, { headers });
     if (response.success && response.data?.user) {
       await setSessionIdentity({
         user: response.data.user,
-        providerProfile: null,
+        providerProfile: response.data.providerProfile ?? null,
       });
     }
     return response;
@@ -61,6 +61,61 @@ export const updateProfile = async (
     return {
       success: false,
       message: error?.response?.data?.message || "Failed to update profile",
+    };
+  }
+};
+
+export interface UpdateProviderProfilePayload {
+  name?: string;
+  description?: string;
+  address?: string;
+  phone?: string;
+  logoUrl?: string | null;
+  openingHours?: string | null;
+  acceptingOrders?: boolean;
+}
+
+export const updateProviderBusinessProfile = async (
+  payload: UpdateProviderProfilePayload
+): Promise<ApiResponse<{ providerProfile: ProviderProfile }> | ApiErrorResponse> => {
+  try {
+    const headers = await getBackendAuthHeaders();
+    const body: Record<string, any> = {};
+    if (payload.name !== undefined) body.name = payload.name.trim();
+    if (payload.description !== undefined) body.description = payload.description.trim();
+    if (payload.address !== undefined) body.address = payload.address.trim();
+    if (payload.phone !== undefined) body.phone = payload.phone.trim();
+    if (payload.logoUrl !== undefined) {
+      body.logoUrl = payload.logoUrl?.trim() ? payload.logoUrl.trim() : null;
+    }
+    if (payload.openingHours !== undefined) {
+      body.openingHours = payload.openingHours?.trim() ? payload.openingHours.trim() : null;
+    }
+    if (payload.acceptingOrders !== undefined) {
+      body.acceptingOrders = payload.acceptingOrders;
+    }
+
+    const response = await httpClient.patch<{ providerProfile: ProviderProfile }>(
+      "/api/provider/profile",
+      body,
+      { headers }
+    );
+
+    if (response.success && response.data?.providerProfile) {
+      const profileResponse = await httpClient.get<CurrentUserData>("/api/profile", { headers });
+      if (profileResponse.success && profileResponse.data) {
+        await setSessionIdentity(profileResponse.data);
+      }
+    }
+
+    return response;
+  } catch (error: any) {
+    return {
+      success: false,
+      message:
+        error?.response?.data?.error?.message ||
+        error?.response?.data?.message ||
+        "Failed to update business profile",
     };
   }
 };

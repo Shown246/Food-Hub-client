@@ -27,12 +27,18 @@ import Link from 'next/link';
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, provider, subtotal, clearCart } = useCart();
+  const { items, provider, subtotal, clearCart, isInitialized } = useCart();
   const deliveryFee = items.length > 0 ? 50 : 0;
   const grandTotal = subtotal + deliveryFee;
 
   const { data: currentUserData, isLoading: isAuthLoading } = useQuery(currentUserQueryOptions);
   const isLoggedIn = !!currentUserData?.user;
+
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Prefill phone and address from customer profile
   const [phone, setPhone] = useState('');
@@ -61,14 +67,14 @@ export default function CheckoutPage() {
 
   // Auth & role redirect guard
   useEffect(() => {
-    if (!isAuthLoading) {
+    if (isMounted && !isAuthLoading) {
       if (!isLoggedIn) {
         router.push('/login?callbackUrl=/checkout');
       } else if (isProvider) {
         router.push('/meals');
       }
     }
-  }, [isAuthLoading, isLoggedIn, isProvider, router]);
+  }, [isMounted, isAuthLoading, isLoggedIn, isProvider, router]);
 
   const handlePlaceOrder = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -106,9 +112,18 @@ export default function CheckoutPage() {
     router.push('/console/customer/orders');
   };
 
-  if (isAuthLoading) {
+  if (!isMounted || isAuthLoading || !isInitialized) {
     return (
-      <div className="flex-1 flex items-center justify-center p-12">
+      <div className="flex-1 flex items-center justify-center p-12 min-h-[50vh]">
+        <Loader2 className="size-8 animate-spin text-orange-500" />
+      </div>
+    );
+  }
+
+  // Prevent flashing empty cart or checkout form while redirecting unauthorized/provider users
+  if (!isLoggedIn || isProvider) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-12 min-h-[50vh]">
         <Loader2 className="size-8 animate-spin text-orange-500" />
       </div>
     );

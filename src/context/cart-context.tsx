@@ -23,6 +23,7 @@ interface CartContextType {
   updateQuantity: (mealId: string, quantity: number) => void;
   removeItem: (mealId: string) => void;
   clearCart: () => void;
+  isInitialized: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -162,6 +163,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         updateQuantity,
         removeItem,
         clearCart,
+        isInitialized,
       }}
     >
       {children}
