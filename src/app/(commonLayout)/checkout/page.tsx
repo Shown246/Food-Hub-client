@@ -57,16 +57,27 @@ export default function CheckoutPage() {
     }
   }, [isLoggedIn]);
 
-  // Auth redirect guard
-  useEffect(() => {
-    if (!isAuthLoading && !isLoggedIn) {
-      router.push('/login?callbackUrl=/checkout');
-    }
-  }, [isAuthLoading, isLoggedIn, router]);
+  const isProvider = currentUserData?.user?.role === 'PROVIDER';
 
-  const handlePlaceOrder = async (e: React.FormEvent) => {
+  // Auth & role redirect guard
+  useEffect(() => {
+    if (!isAuthLoading) {
+      if (!isLoggedIn) {
+        router.push('/login?callbackUrl=/checkout');
+      } else if (isProvider) {
+        router.push('/meals');
+      }
+    }
+  }, [isAuthLoading, isLoggedIn, isProvider, router]);
+
+  const handlePlaceOrder = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (items.length === 0) return;
+
+    if (isProvider) {
+      setOrderError('Providers are not permitted to place meal orders.');
+      return;
+    }
 
     setOrderError(null);
     setIsSubmitting(true);

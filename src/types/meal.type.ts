@@ -1,18 +1,50 @@
-export interface ProviderMeal{
-  id: string,
-  name: string,
-  slug: string,
-  description: string,
-  price: string | number,
-  imageUrl: string | null,
-  dietaryLabels: string[],
-  preparationTimeMinutes: number,
-  isAvailable: boolean,
-  isArchived: boolean,
-  createdAt: string,
-  updatedAt: string,
-  category: Category,
+export interface ProviderMeal {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  price: string | number;
+  imageUrl: string | null;
+  dietaryLabels: string[];
+  preparationTimeMinutes: number | null;
+  isAvailable: boolean;
+  isArchived: boolean;
+  createdAt: string;
+  updatedAt: string;
+  category: Category;
 }
+
+export interface CreateProviderMealPayload {
+  name: string;
+  description: string;
+  price: string;
+  categoryId: string;
+  imageUrl?: string | null;
+  dietaryLabels?: string[];
+  preparationTimeMinutes?: number | null;
+  isAvailable?: boolean;
+}
+
+export interface UpdateProviderMealPayload {
+  name?: string;
+  description?: string;
+  price?: string;
+  categoryId?: string;
+  imageUrl?: string | null;
+  dietaryLabels?: string[];
+  preparationTimeMinutes?: number | null;
+  updatedAt?: string;
+}
+
+export interface GetProviderMealsParams {
+  search?: string;
+  categoryId?: string;
+  availability?: boolean;
+  archived?: boolean;
+  page?: number;
+  limit?: number;
+}
+
 
 export interface Category {
   id: string;

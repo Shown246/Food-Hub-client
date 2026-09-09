@@ -4,15 +4,32 @@ import { useQuery } from '@tanstack/react-query';
 import { getMeals } from './_action';
 import { Card, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Clock, Store, ShoppingBag, Utensils, AlertCircle } from 'lucide-react';
+import {
+  Clock,
+  Store,
+  ShoppingBag,
+  Utensils,
+  AlertCircle,
+  ShieldAlert,
+  ChefHat,
+  ArrowRight,
+} from 'lucide-react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Meal } from '@/types/meal.type';
 import { currentUserQueryOptions } from '@/queries/current-user.query';
 import { useCart } from '@/context/cart-context';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 
 const MealCard = ({
@@ -167,7 +184,10 @@ const Meals = () => {
 
   const { data: currentUserData } = useQuery(currentUserQueryOptions);
   const isLoggedIn = !!currentUserData?.user;
+  const userRole = currentUserData?.user?.role;
+  const isProvider = userRole === 'PROVIDER';
   const { items, openCustomizationModal } = useCart();
+  const [showProviderRestrictionModal, setShowProviderRestrictionModal] = useState(false);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['meals', { category, provider }],
@@ -189,6 +209,11 @@ const Meals = () => {
       try {
         const pending = sessionStorage.getItem('foodhub_pending_meal');
         if (pending) {
+          if (isProvider) {
+            sessionStorage.removeItem('foodhub_pending_meal');
+            setShowProviderRestrictionModal(true);
+            return;
+          }
           const pendingMeal = JSON.parse(pending) as Meal;
           sessionStorage.removeItem('foodhub_pending_meal');
           openCustomizationModal(pendingMeal);
@@ -197,7 +222,7 @@ const Meals = () => {
         sessionStorage.removeItem('foodhub_pending_meal');
       }
     }
-  }, [isLoggedIn, openCustomizationModal]);
+  }, [isLoggedIn, isProvider, openCustomizationModal]);
 
   const handleAddToOrder = (meal: Meal) => {
     if (!isLoggedIn) {
@@ -205,6 +230,11 @@ const Meals = () => {
         sessionStorage.setItem('foodhub_pending_meal', JSON.stringify(meal));
       } catch {}
       router.push('/login?callbackUrl=/meals');
+      return;
+    }
+
+    if (isProvider) {
+      setShowProviderRestrictionModal(true);
       return;
     }
 
@@ -289,6 +319,60 @@ const Meals = () => {
           ))}
         </div>
       )}
+
+      {/* Provider Order Restriction Pop-up Modal */}
+      <Dialog
+        open={showProviderRestrictionModal}
+        onOpenChange={setShowProviderRestrictionModal}
+      >
+        <DialogContent className="max-w-md p-6 sm:p-7 rounded-3xl border-border/80 bg-card shadow-2xl overflow-hidden">
+          <div className="flex flex-col items-center text-center space-y-4 pt-2">
+            <div className="grid size-16 place-items-center rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shadow-sm">
+              <ShieldAlert className="size-8 stroke-[1.75]" />
+            </div>
+
+            <DialogHeader className="space-y-2 text-center sm:text-center">
+              <DialogTitle className="text-xl font-bold tracking-tight text-foreground">
+                Providers Cannot Order Meals
+              </DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground leading-relaxed">
+                As a registered food provider on FoodHub, your account is configured to manage and prepare meals, not to place customer orders.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="w-full p-4 rounded-2xl bg-muted/40 border border-border/60 text-xs text-muted-foreground text-left space-y-1.5">
+              <p className="font-semibold text-foreground flex items-center gap-1.5">
+                <ChefHat className="size-3.5 text-primary" />
+                <span>Want to order meals?</span>
+              </p>
+              <p>
+                To order delicious meals from providers on FoodHub, please sign in with or create a dedicated <strong>Customer</strong> account.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full pt-2">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => setShowProviderRestrictionModal(false)}
+                className="w-full sm:flex-1 rounded-xl h-11 border-border/80 hover:bg-muted font-medium"
+              >
+                Understood
+              </Button>
+              <Link
+                href="/console/provider"
+                className={cn(
+                  buttonVariants(),
+                  "w-full sm:flex-1 rounded-xl h-11 bg-orange-500 hover:bg-orange-600 text-white font-semibold gap-1.5 shadow-sm"
+                )}
+              >
+                <span>Provider Portal</span>
+                <ArrowRight className="size-4" />
+              </Link>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

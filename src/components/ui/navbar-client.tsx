@@ -4,12 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, LogOut, Menu, ShoppingBag, X } from "lucide-react";
 import { useState, useTransition } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "motion/react";
 
 import { cn } from "@/lib/utils";
 import { logoutAction } from "@/app/(auth)/logout_action";
-import { currentUserQueryKey } from "@/queries/current-user.query";
+import { currentUserQueryKey, currentUserQueryOptions } from "@/queries/current-user.query";
 import { useCart } from "@/context/cart-context";
 
 const navigation = [
@@ -24,12 +24,18 @@ function isActivePath(pathname: string, href: string) {
 
 interface NavbarClientProps {
   isLoggedIn: boolean;
+  userRole?: string;
   consoleUrl: string;
 }
 
-export function NavbarClient({ isLoggedIn, consoleUrl }: NavbarClientProps) {
+export function NavbarClient({ isLoggedIn, userRole, consoleUrl }: NavbarClientProps) {
   const pathname = usePathname();
   const queryClient = useQueryClient();
+  const { data: currentUserData } = useQuery(currentUserQueryOptions);
+  const currentRole = currentUserData?.user?.role ?? userRole;
+  const isProvider = currentRole === "PROVIDER";
+  const canShowCart = !isProvider && currentRole !== "ADMIN";
+
   const { totalCount, setIsDrawerOpen } = useCart();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -99,20 +105,22 @@ export function NavbarClient({ isLoggedIn, consoleUrl }: NavbarClientProps) {
         </div>
 
         <div className="hidden items-center gap-2 md:flex">
-          {/* Cart Icon Button */}
-          <button
-            type="button"
-            onClick={() => setIsDrawerOpen(true)}
-            className="relative grid size-10 place-items-center rounded-full border border-zinc-200/80 bg-zinc-100/70 text-zinc-700 transition-all hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-orange-500/10 dark:hover:text-orange-400"
-            aria-label={`Open cart with ${totalCount} items`}
-          >
-            <ShoppingBag className="size-4" />
-            {totalCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white shadow-xs animate-in zoom-in-50">
-                {totalCount}
-              </span>
-            )}
-          </button>
+          {/* Cart Icon Button (Customer / Guest only) */}
+          {canShowCart && (
+            <button
+              type="button"
+              onClick={() => setIsDrawerOpen(true)}
+              className="relative grid size-10 place-items-center rounded-full border border-zinc-200/80 bg-zinc-100/70 text-zinc-700 transition-all hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-orange-500/10 dark:hover:text-orange-400"
+              aria-label={`Open cart with ${totalCount} items`}
+            >
+              <ShoppingBag className="size-4" />
+              {totalCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white shadow-xs animate-in zoom-in-50">
+                  {totalCount}
+                </span>
+              )}
+            </button>
+          )}
 
           {isLoggedIn ? (
             <>
@@ -152,19 +160,21 @@ export function NavbarClient({ isLoggedIn, consoleUrl }: NavbarClientProps) {
         </div>
 
         <div className="flex items-center gap-2 md:hidden">
-          <button
-            type="button"
-            onClick={() => setIsDrawerOpen(true)}
-            className="relative grid size-10 place-items-center rounded-xl border border-zinc-200 text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-white/10 dark:text-zinc-200 dark:hover:bg-white/5"
-            aria-label={`Open cart with ${totalCount} items`}
-          >
-            <ShoppingBag className="size-4" />
-            {totalCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white">
-                {totalCount}
-              </span>
-            )}
-          </button>
+          {canShowCart && (
+            <button
+              type="button"
+              onClick={() => setIsDrawerOpen(true)}
+              className="relative grid size-10 place-items-center rounded-xl border border-zinc-200 text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-white/10 dark:text-zinc-200 dark:hover:bg-white/5"
+              aria-label={`Open cart with ${totalCount} items`}
+            >
+              <ShoppingBag className="size-4" />
+              {totalCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white">
+                  {totalCount}
+                </span>
+              )}
+            </button>
+          )}
 
           <button
             type="button"

@@ -9,9 +9,12 @@ export async function Navbar() {
     ? consoleForRole(currentUser.user.role)
     : "/console";
 
+  const userRole = currentUser?.user?.role;
+
   return (
     <NavbarClient
       isLoggedIn={isLoggedIn}
+      userRole={userRole}
       consoleUrl={consoleUrl}
     />
   );
