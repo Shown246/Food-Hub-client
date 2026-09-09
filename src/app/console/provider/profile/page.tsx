@@ -657,7 +657,7 @@ export default function ProviderProfilePage() {
                     <textarea
                       id="businessDescription"
                       rows={4}
-                      placeholder="Tell customers about your kitchen, signature dishes, culinary philosophy, hygiene standards, and food experience..."
+                      placeholder="Tell customers about your kitchen, signature meals, culinary philosophy, hygiene standards, and food experience..."
                       value={businessDescription}
                       onChange={(e) => setBusinessDescription(e.target.value)}
                       required

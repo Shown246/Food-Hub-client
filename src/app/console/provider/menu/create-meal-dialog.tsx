@@ -225,7 +225,7 @@ export function CreateMealDialog({
             </DialogTitle>
           </div>
           <DialogDescription className="text-sm text-muted-foreground">
-            Create a new dish for your menu. Only you will be able to manage this meal.
+            Create a new meal for your menu. Only you will be able to manage this meal.
           </DialogDescription>
         </DialogHeader>
 
@@ -364,7 +364,7 @@ export function CreateMealDialog({
             <textarea
               id="create-description"
               rows={3}
-              placeholder="Describe the ingredients, flavor, and details of this dish..."
+              placeholder="Describe the ingredients, flavor, and details of this meal..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               maxLength={5000}

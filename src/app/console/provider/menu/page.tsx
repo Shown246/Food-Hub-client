@@ -213,7 +213,7 @@ const MenuPage = () => {
             Menu Management
           </h1>
           <p className="text-muted-foreground mt-1 text-sm md:text-base">
-            Create, update dishes, set availability, and manage your kitchen menu.
+            Create, update meals, set availability, and manage your kitchen menu.
           </p>
         </div>
 
@@ -235,7 +235,7 @@ const MenuPage = () => {
             className="gap-2 font-semibold rounded-xl bg-primary text-primary-foreground shadow-sm hover:opacity-95"
           >
             <Plus className="size-4" />
-            <span>Add Dish</span>
+            <span>Add Meal</span>
           </Button>
         </div>
       </div>
@@ -278,7 +278,7 @@ const MenuPage = () => {
                 : 'border-border/60 bg-card hover:border-border'
             }`}
           >
-            <p className="text-xs font-medium text-muted-foreground">Total dishes</p>
+            <p className="text-xs font-medium text-muted-foreground">Total meals</p>
             <p className="mt-1 text-2xl font-bold tracking-tight text-foreground">{stats.total}</p>
           </div>
           <div
@@ -361,7 +361,7 @@ const MenuPage = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Search dishes..."
+              placeholder="Search meals..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="h-9 pl-8 text-xs rounded-xl border-border/70 focus-visible:ring-primary"
@@ -409,7 +409,7 @@ const MenuPage = () => {
             <UtensilsCrossed className="size-10" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-lg font-semibold text-foreground">No dishes on your menu yet</h3>
+            <h3 className="text-lg font-semibold text-foreground">No meals on your menu yet</h3>
             <p className="text-sm text-muted-foreground max-w-md">
               Start building your menu by adding your delicious offerings for customers.
             </p>
@@ -552,7 +552,7 @@ const MenuPage = () => {
                   </h2>
 
                   <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed min-h-[2.5rem]">
-                    {meal.description || 'No description provided for this dish.'}
+                    {meal.description || 'No description provided for this meal.'}
                   </p>
 
                   <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground font-medium mt-auto">

@@ -80,7 +80,7 @@ export function DeleteMealDialog({
             <span>Soft-archive policy</span>
           </div>
           <p>
-            This action will mark the meal as archived and automatically set its availability to false. Customers will no longer be able to view or order this dish.
+            This action will mark the meal as archived and automatically set its availability to false. Customers will no longer be able to view or order this meal.
           </p>
           <p className="text-muted-foreground/80">
             You can restore this meal at any time from the <strong>Archived</strong> tab.

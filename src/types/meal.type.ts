@@ -69,6 +69,15 @@ export interface MealProvider {
   activeMealCount?: number;
 }
 
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  totalItems: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
 export interface Meal {
   id: string;
   name: string;
@@ -81,4 +90,9 @@ export interface Meal {
   isAvailable?: boolean;
   createdAt?: string;
   provider?: MealProvider;
+  category?: Category;
+  rating?: {
+    average: number | null;
+    count: number;
+  };
 }

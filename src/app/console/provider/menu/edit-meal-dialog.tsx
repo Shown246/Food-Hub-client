@@ -230,7 +230,7 @@ export function EditMealDialog({
             </DialogTitle>
           </div>
           <DialogDescription className="text-sm text-muted-foreground">
-            Update the dish information, pricing, or category details.
+            Update the meal information, pricing, or category details.
           </DialogDescription>
         </DialogHeader>
 
@@ -369,7 +369,7 @@ export function EditMealDialog({
             <textarea
               id="edit-description"
               rows={3}
-              placeholder="Describe the ingredients, flavor, and details of this dish..."
+              placeholder="Describe the ingredients, flavor, and details of this meal..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               maxLength={5000}
