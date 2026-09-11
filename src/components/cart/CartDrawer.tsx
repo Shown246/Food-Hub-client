@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/cart-context';
 import {
@@ -129,11 +130,13 @@ export function CartDrawer() {
                 <div key={item.meal.id} className="py-4 first:pt-0 last:pb-0 space-y-2.5">
                   <div className="flex items-start gap-3">
                     {/* Meal Thumbnail */}
-                    <div className="size-16 rounded-xl overflow-hidden bg-muted shrink-0 border border-border/50">
+                    <div className="relative size-16 rounded-xl overflow-hidden bg-muted shrink-0 border border-border/50">
                       {item.meal.imageUrl ? (
-                        <img
+                        <Image
                           src={item.meal.imageUrl}
                           alt={item.meal.name}
+                          fill
+                          sizes="64px"
                           className="size-full object-cover"
                         />
                       ) : (

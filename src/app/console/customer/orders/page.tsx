@@ -30,7 +30,9 @@ import {
   Calendar,
   Loader2,
   X,
+  Star,
 } from 'lucide-react';
+import { useReviewPrompt } from '@/providers/ReviewPromptProvider';
 
 const STATUS_OPTIONS: { label: string; value: string }[] = [
   { label: 'All Orders', value: '' },
@@ -86,6 +88,7 @@ const getStatusBadge = (status: OrderStatus) => {
 
 export default function CustomerOrdersPage() {
   const queryClient = useQueryClient();
+  const { openReviewModal } = useReviewPrompt();
 
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [selectedSort, setSelectedSort] = useState<string>('newest');
@@ -324,6 +327,18 @@ export default function CustomerOrdersPage() {
                         <span>Details</span>
                       </Button>
 
+                      {order.status === 'DELIVERED' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openReviewModal(order)}
+                          className="gap-1.5 font-medium rounded-xl text-xs border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 hover:text-amber-500"
+                        >
+                          <Star className="size-3.5 fill-amber-400 text-amber-400" />
+                          <span>Leave Review</span>
+                        </Button>
+                      )}
+
                       {order.status === 'PLACED' && (
                         <Button
                           variant="destructive"
@@ -495,7 +510,24 @@ export default function CustomerOrdersPage() {
               </div>
             )}
 
-            <div className="flex justify-end pt-2 border-t border-border/40">
+            <div className="flex items-center justify-between pt-2 border-t border-border/40">
+              {detailedOrder?.status === 'DELIVERED' ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (detailedOrder) {
+                      openReviewModal(detailedOrder);
+                    }
+                  }}
+                  className="gap-1.5 font-medium rounded-xl text-xs border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 hover:text-amber-500"
+                >
+                  <Star className="size-3.5 fill-amber-400 text-amber-400" />
+                  <span>Leave Review</span>
+                </Button>
+              ) : (
+                <div />
+              )}
               <Button variant="outline" onClick={() => setActiveOrderId(null)} className="rounded-xl">
                 Close
               </Button>

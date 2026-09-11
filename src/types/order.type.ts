@@ -45,6 +45,8 @@ export interface Order {
   cancellationReason?: string | null;
   createdAt: string;
   updatedAt: string;
+  deliveredAt?: string | null;
+  cancelledAt?: string | null;
   provider?: OrderProviderSummary;
   items?: OrderItem[];
   statusHistory?: OrderStatusHistory[];

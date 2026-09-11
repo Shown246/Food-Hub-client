@@ -397,3 +397,39 @@ export const restoreProviderMeal = async (
   }
 };
 
+export interface PresignedUrlPayload {
+  fileName: string;
+  contentType: "image/jpeg" | "image/png" | "image/webp" | "image/gif" | "image/avif";
+  fileSize: number;
+  folder?: "meals";
+}
+
+export interface PresignedUrlResponseData {
+  uploadUrl: string;
+  publicUrl: string;
+  key: string;
+}
+
+export const getMealImageUploadUrl = async (
+  payload: PresignedUrlPayload
+): Promise<ApiResponse<PresignedUrlResponseData> | ApiErrorResponse> => {
+  try {
+    const headers = await getBackendAuthHeaders();
+    const response = await httpClient.post<PresignedUrlResponseData>(
+      "/api/uploads/presigned-url",
+      payload,
+      { headers }
+    );
+    return response;
+  } catch (error: any) {
+    return {
+      success: false,
+      message:
+        error?.response?.data?.error?.message ||
+        error?.response?.data?.message ||
+        "Failed to generate image upload URL",
+    };
+  }
+};
+
+

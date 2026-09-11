@@ -2,6 +2,7 @@ import { Suspense } from "react"
 import { GalleryVerticalEndIcon, ShoppingBag } from "lucide-react"
 import { LoginForm } from "@/components/login-form"
 import Link from "next/link"
+import Image from "next/image"
 
 export default function LoginPage() {
 
@@ -32,10 +33,13 @@ export default function LoginPage() {
         </div>
       </div>
       <div className="relative hidden bg-muted lg:block">
-        <img
-          src="/login.jpg"
-          alt="Image"
-          className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.5]"
+        <Image
+          src="/login.webp"
+          alt="FoodHub Login"
+          fill
+          priority
+          sizes="50vw"
+          className="object-cover dark:brightness-[0.5]"
         />
       </div>
     </div>

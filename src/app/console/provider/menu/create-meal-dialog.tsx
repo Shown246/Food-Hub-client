@@ -28,6 +28,7 @@ import {
   Utensils,
   X,
 } from 'lucide-react';
+import { ImageUploader } from '@/components/ui/image-uploader';
 
 interface CreateMealDialogProps {
   open: boolean;
@@ -59,6 +60,7 @@ export function CreateMealDialog({
   const [categoryId, setCategoryId] = useState('');
   const [preparationTimeMinutes, setPreparationTimeMinutes] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [isImageUploading, setIsImageUploading] = useState(false);
   const [dietaryLabels, setDietaryLabels] = useState<string[]>([]);
   const [customTag, setCustomTag] = useState('');
   const [isAvailable, setIsAvailable] = useState(true);
@@ -82,6 +84,7 @@ export function CreateMealDialog({
     setCategoryId('');
     setPreparationTimeMinutes('');
     setImageUrl('');
+    setIsImageUploading(false);
     setDietaryLabels([]);
     setCustomTag('');
     setIsAvailable(true);
@@ -139,6 +142,11 @@ export function CreateMealDialog({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
+
+    if (isImageUploading) {
+      setErrorMessage('Please wait for the image upload to complete.');
+      return;
+    }
 
     // Validation
     const trimmedName = name.trim();
@@ -300,61 +308,37 @@ export function CreateMealDialog({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Preparation Time */}
-            <div className="space-y-1.5">
-              <Label htmlFor="create-prep-time" className="text-xs font-semibold flex items-center gap-1.5">
-                <Clock className="size-3.5 text-muted-foreground" />
-                Preparation Time (minutes)
-              </Label>
-              <Input
-                id="create-prep-time"
-                type="number"
-                min="1"
-                max="1440"
-                placeholder="e.g. 20"
-                value={preparationTimeMinutes}
-                onChange={(e) => setPreparationTimeMinutes(e.target.value)}
-                className="rounded-xl border-border/80 focus-visible:ring-primary"
-              />
-            </div>
-
-            {/* Image URL */}
-            <div className="space-y-1.5">
-              <Label htmlFor="create-image-url" className="text-xs font-semibold flex items-center gap-1.5">
-                <ImageIcon className="size-3.5 text-muted-foreground" />
-                Image URL (optional)
-              </Label>
-              <Input
-                id="create-image-url"
-                type="url"
-                placeholder="https://images.example.com/meal.jpg"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                className="rounded-xl border-border/80 focus-visible:ring-primary"
-              />
-            </div>
+          {/* Preparation Time */}
+          <div className="space-y-1.5">
+            <Label htmlFor="create-prep-time" className="text-xs font-semibold flex items-center gap-1.5">
+              <Clock className="size-3.5 text-muted-foreground" />
+              Preparation Time (minutes)
+            </Label>
+            <Input
+              id="create-prep-time"
+              type="number"
+              min="1"
+              max="1440"
+              placeholder="e.g. 20"
+              value={preparationTimeMinutes}
+              onChange={(e) => setPreparationTimeMinutes(e.target.value)}
+              className="rounded-xl border-border/80 focus-visible:ring-primary"
+            />
           </div>
 
-          {/* Image Preview if provided */}
-          {imageUrl.trim() && (
-            <div className="p-3 bg-muted/30 rounded-2xl border border-border/60 flex items-center gap-4">
-              <div className="relative size-16 rounded-xl overflow-hidden bg-muted shrink-0 border border-border/80">
-                <img
-                  src={imageUrl.trim()}
-                  alt="Meal preview"
-                  className="h-full w-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = '';
-                  }}
-                />
-              </div>
-              <div className="text-xs text-muted-foreground">
-                <p className="font-medium text-foreground">Image Preview</p>
-                <p className="truncate max-w-xs">{imageUrl.trim()}</p>
-              </div>
-            </div>
-          )}
+          {/* Meal Photo */}
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold flex items-center gap-1.5">
+              <ImageIcon className="size-3.5 text-muted-foreground" />
+              Meal Photo (optional)
+            </Label>
+            <ImageUploader
+              value={imageUrl}
+              onChange={setImageUrl}
+              onUploadingChange={setIsImageUploading}
+              disabled={createMutation.isPending}
+            />
+          </div>
 
           {/* Description */}
           <div className="space-y-1.5">
@@ -481,10 +465,15 @@ export function CreateMealDialog({
             </Button>
             <Button
               type="submit"
-              disabled={createMutation.isPending}
+              disabled={createMutation.isPending || isImageUploading}
               className="gap-2 font-semibold rounded-xl px-5"
             >
-              {createMutation.isPending ? (
+              {isImageUploading ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  <span>Uploading Image...</span>
+                </>
+              ) : createMutation.isPending ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />
                   <span>Creating...</span>

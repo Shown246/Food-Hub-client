@@ -5,6 +5,7 @@ import { getBackendAuthHeaders } from "@/lib/auth/backend-auth-headers";
 import { ApiErrorResponse, ApiResponse } from "@/types/api.type";
 import { AuthUser } from "@/types/auth.type";
 import { GetOrdersParams, Order } from "@/types/order.type";
+import { CreateReviewPayload, Review } from "@/types/review.type";
 import { logoutAction as authLogoutAction } from "@/app/(auth)/logout_action";
 import { setSessionIdentity } from "@/lib/auth/session-identity";
 
@@ -124,3 +125,43 @@ export const createCustomerOrder = async (
     };
   }
 };
+
+export const getDeliveredOrderDetails = async (
+  orderId: string
+): Promise<ApiResponse<Order> | ApiErrorResponse> => {
+  try {
+    const headers = await getBackendAuthHeaders();
+    const response = await httpClient.get<Order>(`/api/orders/${orderId}`, { headers });
+    return response;
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error?.response?.data?.message || "Failed to fetch delivered order details",
+    };
+  }
+};
+
+export const createCustomerReview = async (
+  payload: CreateReviewPayload
+): Promise<ApiResponse<Review> | ApiErrorResponse> => {
+  try {
+    const headers = await getBackendAuthHeaders();
+    const response = await httpClient.post<Review>(
+      "/api/reviews",
+      {
+        orderId: payload.orderId,
+        mealId: payload.mealId,
+        rating: payload.rating,
+        comment: payload.comment?.trim() ? payload.comment.trim() : undefined,
+      },
+      { headers }
+    );
+    return response;
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error?.response?.data?.message || "Failed to submit review",
+    };
+  }
+};
+

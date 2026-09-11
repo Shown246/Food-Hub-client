@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -63,10 +64,13 @@ function HomeMealCard({ meal, onAddToOrder, cartQuantity }: HomeMealCardProps) {
       {/* Top Banner / Image Section */}
       <div className={cn("relative h-48 w-full overflow-hidden bg-gradient-to-br flex items-center justify-center", bgGradient)}>
         {meal.imageUrl ? (
-          <img
+          <Image
             src={meal.imageUrl}
             alt={meal.name}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
           />
         ) : (
           <div className="flex flex-col items-center justify-center text-primary/50 group-hover:scale-110 transition-transform duration-500">

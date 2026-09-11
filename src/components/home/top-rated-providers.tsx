@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import { Store, MapPin, Phone, Clock, Utensils, ArrowRight, ChefHat, Star } from "lucide-react";
 import { Card, CardFooter } from "@/components/ui/card";
@@ -19,9 +20,12 @@ function HomeProviderCard({ provider }: { provider: MealProvider }) {
       {/* Top Banner / Logo Section */}
       <div className="relative h-44 w-full overflow-hidden bg-gradient-to-br from-amber-500/10 via-primary/5 to-orange-500/10 flex items-center justify-center p-6">
         {provider.logoUrl ? (
-          <img
+          <Image
             src={provider.logoUrl}
             alt={provider.name}
+            width={96}
+            height={96}
+            sizes="96px"
             className="h-24 w-24 rounded-full object-cover border-4 border-background shadow-md transition-transform duration-500 group-hover:scale-105"
           />
         ) : (

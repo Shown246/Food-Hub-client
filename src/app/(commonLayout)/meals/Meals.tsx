@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Category, Meal } from '@/types/meal.type';
 import { currentUserQueryOptions } from '@/queries/current-user.query';
 import { useCart } from '@/context/cart-context';
@@ -108,10 +109,13 @@ const MealCard = ({
       {/* Top Banner / Image Section */}
       <div className="relative h-48 w-full overflow-hidden bg-gradient-to-br from-amber-500/10 via-primary/5 to-orange-500/10 flex items-center justify-center">
         {meal.imageUrl ? (
-          <img
+          <Image
             src={meal.imageUrl}
             alt={meal.name}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
           />
         ) : (
           <div className="flex flex-col items-center justify-center text-primary/40 group-hover:scale-110 transition-transform duration-500">

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Roboto } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import QueryProviders from "@/providers/QueryProvider";
+import { ReviewPromptProvider } from "@/providers/ReviewPromptProvider";
 
 const roboto = Roboto({subsets:['latin'],variable:'--font-sans'});
 
@@ -33,7 +34,9 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <QueryProviders>
-          {children}
+          <ReviewPromptProvider>
+            {children}
+          </ReviewPromptProvider>
         </QueryProviders>
       </body>
     </html>

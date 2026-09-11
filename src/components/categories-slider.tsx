@@ -88,6 +88,8 @@ export function CategoriesSlider({ items }: { items: Category[] }) {
                           src={item.image || item.imageUrl || ""}
                           alt={item.name}
                           fill
+                          sizes="(max-width: 640px) 224px, 256px"
+                          loading="lazy"
                           className="object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                       ) : (

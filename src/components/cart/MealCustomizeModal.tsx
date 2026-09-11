@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useCart } from '@/context/cart-context';
 import {
   Dialog,
@@ -57,9 +58,11 @@ export function MealCustomizeModal() {
         {/* Meal Image Header */}
         <div className="relative h-44 w-full overflow-hidden bg-gradient-to-br from-amber-500/10 via-primary/5 to-orange-500/10 flex items-center justify-center">
           {meal.imageUrl ? (
-            <img
+            <Image
               src={meal.imageUrl}
               alt={meal.name}
+              fill
+              sizes="(max-width: 640px) 100vw, 448px"
               className="h-full w-full object-cover"
             />
           ) : (
