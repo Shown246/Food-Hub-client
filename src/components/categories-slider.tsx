@@ -16,8 +16,13 @@ export function CategoriesSlider({ items }: { items: Category[] }) {
     loop: false,
   });
 
+  const [mounted, setMounted] = useState(false);
   const [prevBtnDisabled, setPrevBtnDisabled] = useState(true);
   const [nextBtnDisabled, setNextBtnDisabled] = useState(true);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const scrollPrev = useCallback(() => emblaApi && emblaApi.scrollPrev(), [emblaApi]);
   const scrollNext = useCallback(() => emblaApi && emblaApi.scrollNext(), [emblaApi]);
@@ -49,10 +54,11 @@ export function CategoriesSlider({ items }: { items: Category[] }) {
         <Button
           variant="outline"
           size="icon"
-          disabled={prevBtnDisabled}
+          disabled={!mounted || prevBtnDisabled}
           className="size-9 rounded-full shadow-sm hover:bg-accent disabled:opacity-30 transition-all"
           onClick={scrollPrev}
           aria-label="Previous categories"
+          suppressHydrationWarning
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
@@ -60,17 +66,18 @@ export function CategoriesSlider({ items }: { items: Category[] }) {
         <Button
           variant="outline"
           size="icon"
-          disabled={nextBtnDisabled}
+          disabled={!mounted || nextBtnDisabled}
           className="size-9 rounded-full shadow-sm hover:bg-accent disabled:opacity-30 transition-all"
           onClick={scrollNext}
           aria-label="Next categories"
+          suppressHydrationWarning
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
 
       {/* Left Edge Fade */}
-      {!prevBtnDisabled && (
+      {mounted && !prevBtnDisabled && (
         <div className="absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none transition-opacity" />
       )}
 
@@ -116,7 +123,7 @@ export function CategoriesSlider({ items }: { items: Category[] }) {
       </div>
 
       {/* Right Edge Fade */}
-      {!nextBtnDisabled && (
+      {mounted && !nextBtnDisabled && (
         <div className="absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none transition-opacity" />
       )}
     </div>

@@ -16,14 +16,15 @@ import { useForm } from "@tanstack/react-form";
 import { useState } from "react";
 import Link from "next/link"
 import { useSearchParams } from "next/navigation";
-import { isRedirectError } from "next/dist/client/components/redirect-error"
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { loginAction } from "@/app/(auth)/login/_action";
-import { Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 export function LoginForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl");
   const [serverError, setServerError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const { mutateAsync, isPending } = useMutation({
     mutationFn: (payload: IloginPayload) => loginAction(payload, callbackUrl)
   })
@@ -107,13 +108,28 @@ export function LoginForm() {
                 Forgot your password?
               </a>
             </div>
-            <Input
-              id="password"
-              type="password"
-              value={field.state.value}
-              onBlur={field.handleBlur}
-              onChange={(e) => field.handleChange(e.target.value)}
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm transition-colors cursor-pointer"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff className="size-4" />
+                ) : (
+                  <Eye className="size-4" />
+                )}
+              </button>
+            </div>
             <FieldError errors={field.state.meta.errors} />
           </Field>
         )}

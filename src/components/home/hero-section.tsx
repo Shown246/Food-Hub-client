@@ -149,7 +149,7 @@ export function HeroSection() {
             <div className="relative w-full max-w-md lg:max-w-none">
               <div className="relative aspect-[16/11] sm:aspect-[4/3] rounded-3xl overflow-hidden border border-white/10 shadow-2xl shadow-orange-500/10 group">
                 <Image
-                  src="/hero-food.jpg"
+                  src="/hero-food.webp"
                   alt="Delicious food spread featuring ramen, gourmet burger, sushi, and biryani"
                   fill
                   priority
