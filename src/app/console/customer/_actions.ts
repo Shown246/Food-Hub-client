@@ -9,6 +9,7 @@ import { CreateReviewPayload, Review, UpdateReviewPayload } from "@/types/review
 import { logoutAction as authLogoutAction } from "@/app/(auth)/logout_action";
 import { setSessionIdentity } from "@/lib/auth/session-identity";
 
+
 export const logoutAction = async (): Promise<void> => {
   await authLogoutAction();
 };

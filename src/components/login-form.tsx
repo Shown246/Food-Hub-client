@@ -18,12 +18,19 @@ import Link from "next/link"
 import { useSearchParams } from "next/navigation";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { loginAction } from "@/app/(auth)/login/_action";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { resendVerificationAction } from "@/app/(auth)/verify-email/_action";
+import { Eye, EyeOff, Loader2, RotateCcw } from "lucide-react";
 
 export function LoginForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl");
   const [serverError, setServerError] = useState<string | null>(null);
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
+  const [isResending, setIsResending] = useState(false);
+  const [resendStatus, setResendStatus] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const { mutateAsync, isPending } = useMutation({
     mutationFn: (payload: IloginPayload) => loginAction(payload, callbackUrl)
@@ -35,10 +42,19 @@ export function LoginForm() {
     },
     onSubmit: async ({ value }) => {
       setServerError(null);
+      setUnverifiedEmail(null);
+      setResendStatus(null);
       try {
         const result = await mutateAsync(value);
         if (!result.success) {
-          setServerError(result.message || "LogIn Failed");
+          if ((result as any).code === "EMAIL_NOT_VERIFIED") {
+            setUnverifiedEmail(value.email);
+            setServerError(
+              result.message || "Please verify your email address before logging in."
+            );
+          } else {
+            setServerError(result.message || "LogIn Failed");
+          }
           return;
         }
       } catch (error) {
@@ -50,6 +66,31 @@ export function LoginForm() {
       }
     }
   })
+
+  const handleResend = async () => {
+    if (!unverifiedEmail) return;
+    setIsResending(true);
+    setResendStatus(null);
+    try {
+      const res = await resendVerificationAction(unverifiedEmail);
+      setResendStatus({
+        success: res.success,
+        message:
+          res.message ||
+          (res.success
+            ? "Verification email resent! Check your inbox."
+            : "Failed to resend verification email."),
+      });
+    } catch {
+      setResendStatus({
+        success: false,
+        message: "Failed to resend verification email. Please try again.",
+      });
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   return (
   <form
     method="POST"
@@ -70,8 +111,44 @@ export function LoginForm() {
       </div>
       {/* Server Error Message */}
       {serverError && (
-        <div className="p-3 text-sm rounded-md bg-destructive/15 text-destructive font-medium text-center">
-          {serverError}
+        <div className="p-4 text-sm rounded-lg bg-destructive/15 text-destructive font-medium flex flex-col gap-2">
+          <p>{serverError}</p>
+          {unverifiedEmail && (
+            <div className="mt-1 pt-2 border-t border-destructive/20 flex flex-col gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleResend}
+                disabled={isResending}
+                className="w-full text-xs h-8 border-destructive/30 hover:bg-destructive/10 cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                {isResending ? (
+                  <>
+                    <Loader2 className="size-3 animate-spin" />
+                    Sending link...
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw className="size-3" />
+                    Resend verification email
+                  </>
+                )}
+              </Button>
+              {resendStatus && (
+                <p
+                  className={cn(
+                    "text-xs font-normal text-center",
+                    resendStatus.success
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : "text-destructive"
+                  )}
+                >
+                  {resendStatus.message}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       )}
       <form.Field
@@ -101,12 +178,12 @@ export function LoginForm() {
           <Field>
             <div className="flex items-center">
               <FieldLabel htmlFor="password">Password</FieldLabel>
-              <a
-                href="#"
+              <Link
+                href="/forgot-password"
                 className="ml-auto text-sm underline-offset-4 hover:underline"
               >
                 Forgot your password?
-              </a>
+              </Link>
             </div>
             <div className="relative">
               <Input

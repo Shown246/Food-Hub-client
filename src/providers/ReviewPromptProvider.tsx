@@ -41,27 +41,28 @@ interface ReviewPromptProviderProps {
   children: React.ReactNode;
 }
 
-export function ReviewPromptProvider({ children }: ReviewPromptProviderProps) {
+interface ReviewPromptWatcherProps {
+  openReviewModal: (orderOrId: string | Order) => void;
+  resetTracking: () => void;
+  prevOrderStatusMapRef: React.RefObject<Map<string, OrderStatus> | null>;
+  promptedOrdersRef: React.RefObject<Set<string>>;
+}
+
+function ReviewPromptWatcher({
+  openReviewModal,
+  resetTracking,
+  prevOrderStatusMapRef,
+  promptedOrdersRef,
+}: ReviewPromptWatcherProps) {
   const { data: currentUser } = useCurrentUser();
   const isCustomer = currentUser?.user?.role === 'CUSTOMER';
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeOrder, setActiveOrder] = useState<Order | null>(null);
-  const [isLoadingOrder, setIsLoadingOrder] = useState(false);
-
-  // Status tracking refs
-  const prevOrderStatusMapRef = useRef<Map<string, OrderStatus> | null>(null);
-  const promptedOrdersRef = useRef<Set<string>>(new Set());
 
   // Reset tracking when user or role changes
   useEffect(() => {
     if (!isCustomer) {
-      prevOrderStatusMapRef.current = null;
-      promptedOrdersRef.current.clear();
-      setIsModalOpen(false);
-      setActiveOrder(null);
+      resetTracking();
     }
-  }, [isCustomer, currentUser?.user?.id]);
+  }, [isCustomer, currentUser?.user?.id, resetTracking]);
 
   // Fetch recent customer orders with smart polling
   const { data: ordersResponse } = useQuery({
@@ -77,58 +78,6 @@ export function ReviewPromptProvider({ children }: ReviewPromptProviderProps) {
     },
     refetchOnWindowFocus: true,
   });
-
-  const openReviewModal = useCallback(async (orderOrId: string | Order) => {
-    if (typeof orderOrId === 'string') {
-      setIsModalOpen(true);
-      setIsLoadingOrder(true);
-      try {
-        const res = await getDeliveredOrderDetails(orderOrId);
-        if (res.success && res.data) {
-          setActiveOrder(res.data);
-        }
-      } catch (err) {
-        console.error('Failed to load order for review:', err);
-      } finally {
-        setIsLoadingOrder(false);
-      }
-    } else {
-      setActiveOrder(orderOrId);
-      setIsModalOpen(true);
-
-      // If items aren't populated (e.g. from summary list), fetch complete order
-      if (!orderOrId.items || orderOrId.items.length === 0) {
-        setIsLoadingOrder(true);
-        try {
-          const res = await getDeliveredOrderDetails(orderOrId.id);
-          if (res.success && res.data) {
-            setActiveOrder(res.data);
-          }
-        } catch (err) {
-          console.error('Failed to load order details for review:', err);
-        } finally {
-          setIsLoadingOrder(false);
-        }
-      }
-    }
-  }, []);
-
-  const closeReviewModal = useCallback(() => {
-    setIsModalOpen(false);
-    setActiveOrder(null);
-    setIsLoadingOrder(false);
-  }, []);
-
-  const dismissReview = useCallback((orderId: string) => {
-    markReviewAsDismissed(orderId);
-    promptedOrdersRef.current.add(orderId);
-    closeReviewModal();
-  }, [closeReviewModal]);
-
-  const completeReview = useCallback((orderId: string) => {
-    markReviewAsCompleted(orderId);
-    promptedOrdersRef.current.add(orderId);
-  }, []);
 
   // Transition & Offline Delivery Detection
   useEffect(() => {
@@ -188,7 +137,83 @@ export function ReviewPromptProvider({ children }: ReviewPromptProviderProps) {
     }
 
     prevOrderStatusMapRef.current = currentMap;
-  }, [ordersResponse, isCustomer, openReviewModal]);
+  }, [ordersResponse, isCustomer, openReviewModal, prevOrderStatusMapRef, promptedOrdersRef]);
+
+  return null;
+}
+
+export function ReviewPromptProvider({ children }: ReviewPromptProviderProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeOrder, setActiveOrder] = useState<Order | null>(null);
+  const [isLoadingOrder, setIsLoadingOrder] = useState(false);
+
+  // Status tracking refs
+  const prevOrderStatusMapRef = useRef<Map<string, OrderStatus> | null>(null);
+  const promptedOrdersRef = useRef<Set<string>>(new Set());
+
+  const resetTracking = useCallback(() => {
+    prevOrderStatusMapRef.current = null;
+    promptedOrdersRef.current.clear();
+    setIsModalOpen(false);
+    setActiveOrder(null);
+  }, []);
+
+  const openReviewModal = useCallback(async (orderOrId: string | Order) => {
+    if (typeof orderOrId === 'string') {
+      setIsModalOpen(true);
+      setIsLoadingOrder(true);
+      try {
+        const res = await getDeliveredOrderDetails(orderOrId);
+        if (res.success && res.data) {
+          setActiveOrder(res.data);
+        }
+      } catch (err) {
+        console.error('Failed to load order for review:', err);
+      } finally {
+        setIsLoadingOrder(false);
+      }
+    } else {
+      setActiveOrder(orderOrId);
+      setIsModalOpen(true);
+
+      // If items aren't populated (e.g. from summary list), fetch complete order
+      if (!orderOrId.items || orderOrId.items.length === 0) {
+        setIsLoadingOrder(true);
+        try {
+          const res = await getDeliveredOrderDetails(orderOrId.id);
+          if (res.success && res.data) {
+            setActiveOrder(res.data);
+          }
+        } catch (err) {
+          console.error('Failed to load order details for review:', err);
+        } finally {
+          setIsLoadingOrder(false);
+        }
+      }
+    }
+  }, []);
+
+  const closeReviewModal = useCallback(() => {
+    setIsModalOpen(false);
+    setActiveOrder(null);
+    setIsLoadingOrder(false);
+  }, []);
+
+  const dismissReview = useCallback((orderId: string) => {
+    markReviewAsDismissed(orderId);
+    promptedOrdersRef.current.add(orderId);
+    closeReviewModal();
+  }, [closeReviewModal]);
+
+  const completeReview = useCallback((orderId: string) => {
+    markReviewAsCompleted(orderId);
+    promptedOrdersRef.current.add(orderId);
+  }, []);
 
   return (
     <ReviewPromptContext.Provider
@@ -201,6 +226,14 @@ export function ReviewPromptProvider({ children }: ReviewPromptProviderProps) {
       }}
     >
       {children}
+      {mounted && (
+        <ReviewPromptWatcher
+          openReviewModal={openReviewModal}
+          resetTracking={resetTracking}
+          prevOrderStatusMapRef={prevOrderStatusMapRef}
+          promptedOrdersRef={promptedOrdersRef}
+        />
+      )}
       <OrderReviewModal
         isOpen={isModalOpen}
         onClose={closeReviewModal}

@@ -31,7 +31,7 @@ export default async function ConsoleLayout({
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <SidebarProvider>
-        <AppSidebar />
+        <AppSidebar initialUser={currentUser.user} />
         <SidebarInset className="flex flex-col min-h-screen bg-background">
           <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-border/40 px-6 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 bg-card/50 backdrop-blur-xs sticky top-0 z-10">
             <div className="flex items-center gap-3">

@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Field,
   FieldDescription,
@@ -21,7 +21,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { signupAction } from "@/app/(auth)/signup/_action";
-import { Eye, EyeOff, Loader2, User, Store } from "lucide-react";
+import { Eye, EyeOff, Loader2, User, Store, Mail, RotateCcw } from "lucide-react";
+import { resendVerificationAction } from "@/app/(auth)/verify-email/_action";
 import { z } from "zod";
 
 export function SignupForm() {
@@ -29,6 +30,9 @@ export function SignupForm() {
   const [serverError, setServerError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [verificationPendingEmail, setVerificationPendingEmail] = useState<string | null>(null);
+  const [isResending, setIsResending] = useState(false);
+  const [resendStatus, setResendStatus] = useState<{ success: boolean; message: string } | null>(null);
 
   const { mutateAsync } = useMutation({
     mutationFn: (payload: ISignupInput) => signupAction(payload),
@@ -78,6 +82,15 @@ export function SignupForm() {
           setServerError(result.message || "Registration failed");
           return;
         }
+
+        if (
+          (result as any).requireVerification ||
+          (result as any).emailVerified === false ||
+          !(result as any).token
+        ) {
+          setVerificationPendingEmail(payload.email);
+          return;
+        }
       } catch (error) {
         if (isRedirectError(error)) {
           throw error;
@@ -87,6 +100,103 @@ export function SignupForm() {
       }
     },
   });
+
+  const handleResend = async () => {
+    if (!verificationPendingEmail) return;
+    setIsResending(true);
+    setResendStatus(null);
+    try {
+      const res = await resendVerificationAction(verificationPendingEmail);
+      setResendStatus({
+        success: res.success,
+        message:
+          res.message ||
+          (res.success
+            ? "A fresh verification link has been sent to your email."
+            : "Failed to resend verification email."),
+      });
+    } catch {
+      setResendStatus({
+        success: false,
+        message: "Failed to resend verification email. Please try again.",
+      });
+    } finally {
+      setIsResending(false);
+    }
+  };
+
+  if (verificationPendingEmail) {
+    return (
+      <div className="flex flex-col items-center text-center gap-6 py-4">
+        <div className="flex size-16 items-center justify-center rounded-2xl bg-orange-500/10 text-orange-600 dark:text-orange-400">
+          <Mail className="size-8" />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <h1 className="text-2xl font-bold tracking-tight">Check your email</h1>
+          <p className="text-sm text-muted-foreground">
+            We&apos;ve sent a verification link to:
+          </p>
+          <div className="inline-block px-3 py-1.5 rounded-lg bg-muted text-sm font-semibold text-foreground break-all max-w-full">
+            {verificationPendingEmail}
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            Click the link in the email to activate your account and start using FoodHub. The link expires in 1 hour.
+          </p>
+        </div>
+
+        {resendStatus && (
+          <div
+            className={cn(
+              "w-full p-3 text-sm rounded-md font-medium text-center",
+              resendStatus.success
+                ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
+                : "bg-destructive/15 text-destructive"
+            )}
+          >
+            {resendStatus.message}
+          </div>
+        )}
+
+        <div className="flex flex-col gap-3 w-full">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleResend}
+            disabled={isResending}
+            className="w-full flex items-center justify-center gap-2 cursor-pointer"
+          >
+            {isResending ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                Resending link...
+              </>
+            ) : (
+              <>
+                <RotateCcw className="size-4" />
+                Resend verification email
+              </>
+            )}
+          </Button>
+
+          <Link href="/login" className={cn(buttonVariants(), "w-full")}>
+            Go to Sign in
+          </Link>
+
+          <button
+            type="button"
+            onClick={() => {
+              setVerificationPendingEmail(null);
+              setResendStatus(null);
+            }}
+            className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4 mt-2 cursor-pointer"
+          >
+            Need to change your email or details?
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form

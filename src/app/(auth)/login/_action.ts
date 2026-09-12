@@ -7,6 +7,8 @@ import { ILoginResponse } from "@/types/auth.type";
 import { IloginPayload, loginZodSchema } from "@/zod/auth.validation";
 import { redirect } from "next/navigation";
 import { setSessionIdentity } from "@/lib/auth/session-identity";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
+import axios from "axios";
 
 export const loginAction = async (
   payload: IloginPayload,
@@ -20,51 +22,75 @@ export const loginAction = async (
       message: firstError
     }
   }
-  const response = await httpClient.post<ILoginResponse>("/api/auth/login", parseedPayload.data, {});
-  
-  if (!response.success) {
-    return {
-      success: false,
-      message: response.message
+
+  try {
+    const response = await httpClient.post<ILoginResponse>("/api/auth/login", parseedPayload.data, {});
+    
+    if (!response.success) {
+      return {
+        success: false,
+        message: response.message
+      }
     }
-  }
-  if(!response.data){
-    return {
-      success: false,
-      message: "LogIn Failed"
+    if(!response.data){
+      return {
+        success: false,
+        message: "LogIn Failed"
+      }
     }
-  }
-  const { token, accessToken, refreshToken, user } = response.data;
-  if (!user) {
+    const { token, accessToken, refreshToken, user } = response.data;
+    if (!user) {
+      return {
+        success: false,
+        message: "User data not found",
+      };
+    }
+    if(token){await setTokenInCookies("better-auth.session_token", token)}
+    if(accessToken){await setTokenInCookies("accessToken", accessToken)}
+    if(refreshToken){await setTokenInCookies("refreshToken", refreshToken)}
+    await setSessionIdentity({
+      user,
+      providerProfile: response.data.providerProfile,
+    });
+
+    if (callbackUrl && callbackUrl.startsWith("/") && !callbackUrl.startsWith("//")) {
+      redirect(callbackUrl);
+    }
+
+    const role = user.role.toUpperCase();
+    switch (role) {
+      case 'CUSTOMER':
+        redirect("/console/customer");
+
+      case 'PROVIDER':
+        redirect("/console/provider");
+
+      case 'ADMIN':
+        redirect("/console/admin");
+
+      default:
+        redirect("/");
+    }
+  } catch (error: unknown) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+    if (axios.isAxiosError(error)) {
+      const errorData = error.response?.data;
+      const code = errorData?.error?.code || errorData?.code;
+      const msg =
+        errorData?.error?.message ||
+        errorData?.message ||
+        "Login failed. Please check your credentials.";
+      return {
+        success: false,
+        message: msg,
+        code,
+      };
+    }
     return {
       success: false,
-      message: "User data not found",
+      message: "An unexpected error occurred. Please try again.",
     };
-  }
-  if(token){await setTokenInCookies("better-auth.session_token", token)}
-  if(accessToken){await setTokenInCookies("accessToken", accessToken)}
-  if(refreshToken){await setTokenInCookies("refreshToken", refreshToken)}
-  await setSessionIdentity({
-    user,
-    providerProfile: response.data.providerProfile,
-  });
-
-  if (callbackUrl && callbackUrl.startsWith("/") && !callbackUrl.startsWith("//")) {
-    redirect(callbackUrl);
-  }
-
-  const role = user.role.toUpperCase();
-  switch (role) {
-    case 'CUSTOMER':
-      redirect("/console/customer");
-
-    case 'PROVIDER':
-      redirect("/console/provider");
-
-    case 'ADMIN':
-      redirect("/console/admin");
-
-    default:
-      redirect("/");
   }
 }

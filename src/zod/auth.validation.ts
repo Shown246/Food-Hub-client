@@ -78,3 +78,34 @@ export interface IProviderSignupApiPayload {
 }
 
 export type ISignupApiPayload = ICustomerSignupApiPayload | IProviderSignupApiPayload;
+
+export const forgotPasswordZodSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+});
+export type IForgotPasswordPayload = z.infer<typeof forgotPasswordZodSchema>;
+
+export const resetPasswordZodSchema = z.object({
+  password: passwordSchema,
+  confirmPassword: z.string().min(1, "Please confirm your password"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+export type IResetPasswordPayload = z.infer<typeof resetPasswordZodSchema>;
+
+export const changePasswordZodSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Current password is required"),
+    newPassword: passwordSchema,
+    confirmPassword: z.string().min(1, "Please confirm your new password"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "New passwords do not match",
+    path: ["confirmPassword"],
+  })
+  .refine((data) => data.currentPassword !== data.newPassword, {
+    message: "The new password must be different from the current password",
+    path: ["newPassword"],
+  });
+
+export type IChangePasswordPayload = z.infer<typeof changePasswordZodSchema>;

@@ -29,14 +29,19 @@ import {
 import { logoutAction } from "@/app/console/customer/_actions";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { currentUserQueryKey } from "@/queries/current-user.query";
+import type { SessionIdentityData } from "@/types/auth.type";
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  initialUser?: SessionIdentityData["user"];
+}
+
+export function AppSidebar({ initialUser, ...props }: AppSidebarProps) {
   const pathname = usePathname();
   const queryClient = useQueryClient();
   const [isLoggingOut, setIsLoggingOut] = React.useState(false);
 
   const { data: currentUser } = useCurrentUser();
-  const user = currentUser?.user;
+  const user = currentUser?.user ?? initialUser;
 
   const handleLogout = async () => {
     try {

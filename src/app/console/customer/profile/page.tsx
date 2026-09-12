@@ -26,8 +26,10 @@ import {
   Calendar,
   Shield,
   Save,
+  KeyRound,
 } from 'lucide-react';
 import { currentUserQueryKey } from '@/queries/current-user.query';
+import { ChangePasswordCard } from '@/components/profile/change-password-card';
 
 const customerProfileQueryKey = ['customer-profile'] as const;
 
@@ -212,11 +214,29 @@ export default function CustomerProfilePage() {
                 }) : 'N/A'}
               </span>
             </div>
+
+            <div className="pt-2 border-t border-border/40">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const el = document.getElementById('security-settings');
+                  el?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="w-full rounded-xl text-xs font-semibold gap-2 border-border/80 hover:bg-muted"
+              >
+                <KeyRound className="size-3.5 text-primary" />
+                <span>Change Password</span>
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
-        {/* Right Column: Edit Profile Form */}
-        <Card className="lg:col-span-2 border border-border/60 shadow-sm rounded-2xl">
+        {/* Right Column: Edit Profile & Security Forms */}
+        <div className="lg:col-span-2 space-y-8">
+          <Card className="border border-border/60 shadow-sm rounded-2xl">
+
           <CardHeader>
             <CardTitle className="text-xl flex items-center gap-2">
               <User className="size-5 text-primary" />
@@ -331,7 +351,12 @@ export default function CustomerProfilePage() {
             </CardFooter>
           </form>
         </Card>
+
+        {/* Change Password / Security Section */}
+        <ChangePasswordCard />
       </div>
     </div>
-  );
+  </div>
+);
 }
+

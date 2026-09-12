@@ -8,4 +8,5 @@ export interface ApiResponse<TData = unknown> {
 export interface ApiErrorResponse {
   success: false;
   message?: string;
+  code?: string;
 }

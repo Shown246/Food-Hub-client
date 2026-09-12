@@ -40,16 +40,29 @@ import {
   Power,
   UtensilsCrossed,
   Sparkles,
+  KeyRound,
 } from 'lucide-react';
 import { currentUserQueryKey } from '@/queries/current-user.query';
+import { ChangePasswordCard } from '@/components/profile/change-password-card';
+
 
 const providerProfileQueryKey = ['provider-profile'] as const;
 
-type ActiveTab = 'business' | 'personal';
+type ActiveTab = 'business' | 'personal' | 'security';
 
 export default function ProviderProfilePage() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<ActiveTab>('business');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab');
+      if (tabParam === 'security' || tabParam === 'personal' || tabParam === 'business') {
+        setActiveTab(tabParam as ActiveTab);
+      }
+    }
+  }, []);
 
   // Feedback notifications
   const [feedback, setFeedback] = useState<{
@@ -456,6 +469,22 @@ export default function ProviderProfilePage() {
                     : 'N/A'}
                 </span>
               </div>
+
+              <div className="pt-2 border-t border-border/40">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setActiveTab('security');
+                    setFeedback(null);
+                  }}
+                  className="w-full rounded-xl text-xs font-semibold gap-2 border-border/80 hover:bg-muted"
+                >
+                  <KeyRound className="size-3.5 text-primary" />
+                  <span>Change Password</span>
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -470,14 +499,14 @@ export default function ProviderProfilePage() {
                 setActiveTab('business');
                 setFeedback(null);
               }}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs md:text-sm font-semibold transition-all duration-200 ${
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 sm:px-4 rounded-xl text-xs md:text-sm font-semibold transition-all duration-200 ${
                 activeTab === 'business'
                   ? 'bg-background text-foreground shadow-xs border border-border/60'
                   : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
               }`}
             >
-              <Store className="size-4 text-primary" />
-              <span>Business Information</span>
+              <Store className="size-4 text-primary shrink-0" />
+              <span className="truncate">Business Info</span>
             </button>
             <button
               type="button"
@@ -485,16 +514,32 @@ export default function ProviderProfilePage() {
                 setActiveTab('personal');
                 setFeedback(null);
               }}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs md:text-sm font-semibold transition-all duration-200 ${
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 sm:px-4 rounded-xl text-xs md:text-sm font-semibold transition-all duration-200 ${
                 activeTab === 'personal'
                   ? 'bg-background text-foreground shadow-xs border border-border/60'
                   : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
               }`}
             >
-              <User className="size-4 text-primary" />
-              <span>Personal Account</span>
+              <User className="size-4 text-primary shrink-0" />
+              <span className="truncate">Personal Account</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('security');
+                setFeedback(null);
+              }}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 sm:px-4 rounded-xl text-xs md:text-sm font-semibold transition-all duration-200 ${
+                activeTab === 'security'
+                  ? 'bg-background text-foreground shadow-xs border border-border/60'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+              }`}
+            >
+              <KeyRound className="size-4 text-primary shrink-0" />
+              <span className="truncate">Security & Password</span>
             </button>
           </div>
+
 
           {/* TAB 1: Business Information Form */}
           {activeTab === 'business' && (
@@ -830,8 +875,14 @@ export default function ProviderProfilePage() {
               </form>
             </Card>
           )}
+
+          {/* TAB 3: Security & Password */}
+          {activeTab === 'security' && (
+            <ChangePasswordCard className="animate-in fade-in duration-200" />
+          )}
         </div>
       </div>
     </div>
   );
 }
+

@@ -31,6 +31,7 @@ export interface AuthUser {
   role: "CUSTOMER" | "PROVIDER" | "ADMIN";
   status: "ACTIVE" | "SUSPENDED";
   defaultDeliveryAddress: string | null;
+  emailVerified?: boolean;
   createdAt: string; // ISO 8601
   updatedAt: string; // ISO 8601
 }
@@ -46,9 +47,33 @@ export interface ILoginResponse {
 
 export interface ISignupResponse {
   success: true;
-  user: AuthUser | null;
-  providerProfile: ProviderProfile | null;
+  user?: Partial<AuthUser> | null;
+  providerProfile?: ProviderProfile | null;
   token?: string;
   accessToken?: string | null;
   refreshToken?: string | null;
+  requireVerification?: boolean;
+  emailVerified?: boolean;
+  verificationEmailSent?: boolean;
+  message?: string;
+  email?: string;
+}
+
+export interface IVerifyEmailResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    verified: boolean;
+    email: string;
+    message: string;
+  };
+}
+
+export interface IResendVerificationResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    sent: boolean;
+    message: string;
+  };
 }

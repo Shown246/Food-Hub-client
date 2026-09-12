@@ -13,6 +13,7 @@ import {
 import { redirect } from "next/navigation";
 import axios from "axios";
 import { setSessionIdentity } from "@/lib/auth/session-identity";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 
 export const signupAction = async (
   payload: ISignupInput
@@ -81,7 +82,23 @@ export const signupAction = async (
       };
     }
 
-    const { token, accessToken, refreshToken, user } = response.data;
+    const { token, accessToken, refreshToken, user, requireVerification, emailVerified } = response.data;
+
+    // If verification is required (or email is unverified and no session token was issued),
+    // return success with verification flag so the UI can prompt the user to check their email.
+    if (requireVerification || emailVerified === false || !token) {
+      return {
+        success: true,
+        requireVerification: true,
+        emailVerified: false,
+        email: payload.email,
+        message:
+          response.data.message ||
+          "Registration successful. Please check your email to verify your account.",
+        user,
+      };
+    }
+
     if (!user) {
       return {
         success: false,
@@ -98,11 +115,11 @@ export const signupAction = async (
       await setTokenInCookies("refreshToken", refreshToken);
     }
     await setSessionIdentity({
-      user,
-      providerProfile: response.data.providerProfile,
+      user: user as any,
+      providerProfile: response.data.providerProfile ?? null,
     });
 
-    const role = user.role.toUpperCase();
+    const role = user.role?.toUpperCase();
     switch (role) {
       case "CUSTOMER":
         redirect("/console/customer");
@@ -114,6 +131,9 @@ export const signupAction = async (
         redirect("/");
     }
   } catch (error: unknown) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
     if (axios.isAxiosError(error)) {
       const errorData = error.response?.data;
       const msg =
@@ -125,6 +145,9 @@ export const signupAction = async (
         message: msg,
       };
     }
-    throw error;
+    return {
+      success: false,
+      message: "Registration failed. Please try again.",
+    };
   }
 };
