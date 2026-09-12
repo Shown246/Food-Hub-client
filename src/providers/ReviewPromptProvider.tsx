@@ -137,6 +137,12 @@ export function ReviewPromptProvider({ children }: ReviewPromptProviderProps) {
     const orders = extractOrdersList(ordersResponse);
     if (orders.length === 0) return;
 
+    const isOrderReviewed = (order: Order): boolean => {
+      if (order.reviews && order.reviews.length > 0) return true;
+      if (typeof order.averageRating === 'number') return true;
+      return isReviewDismissedOrCompleted(order.id);
+    };
+
     const prevMap = prevOrderStatusMapRef.current;
     const currentMap = new Map<string, OrderStatus>();
     orders.forEach((o) => currentMap.set(o.id, o.status));
@@ -153,7 +159,7 @@ export function ReviewPromptProvider({ children }: ReviewPromptProviderProps) {
 
         if (
           isWithin48h &&
-          !isReviewDismissedOrCompleted(newestDelivered.id) &&
+          !isOrderReviewed(newestDelivered) &&
           !promptedOrdersRef.current.has(newestDelivered.id)
         ) {
           promptedOrdersRef.current.add(newestDelivered.id);
@@ -171,7 +177,7 @@ export function ReviewPromptProvider({ children }: ReviewPromptProviderProps) {
 
         if (
           isLiveTransition &&
-          !isReviewDismissedOrCompleted(order.id) &&
+          !isOrderReviewed(order) &&
           !promptedOrdersRef.current.has(order.id)
         ) {
           promptedOrdersRef.current.add(order.id);

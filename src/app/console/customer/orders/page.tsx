@@ -327,17 +327,53 @@ export default function CustomerOrdersPage() {
                         <span>Details</span>
                       </Button>
 
-                      {order.status === 'DELIVERED' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openReviewModal(order)}
-                          className="gap-1.5 font-medium rounded-xl text-xs border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 hover:text-amber-500"
-                        >
-                          <Star className="size-3.5 fill-amber-400 text-amber-400" />
-                          <span>Leave Review</span>
-                        </Button>
-                      )}
+                      {order.status === 'DELIVERED' && (() => {
+                        const averageRating =
+                          typeof order.averageRating === 'number'
+                            ? order.averageRating
+                            : order.reviews && order.reviews.length > 0
+                            ? Number(
+                                (
+                                  order.reviews.reduce((acc, r) => acc + r.rating, 0) /
+                                  order.reviews.length
+                                ).toFixed(1)
+                              )
+                            : null;
+
+                        const displayRating =
+                          averageRating !== null
+                            ? averageRating % 1 === 0
+                              ? averageRating.toFixed(0)
+                              : averageRating.toFixed(1)
+                            : null;
+
+                        if (displayRating !== null) {
+                          return (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openReviewModal(order)}
+                              className="gap-1.5 font-bold rounded-xl text-xs border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 hover:text-amber-500 transition-colors"
+                              title="Click to edit review"
+                            >
+                              <Star className="size-3.5 fill-amber-400 text-amber-400" />
+                              <span>{displayRating}</span>
+                            </Button>
+                          );
+                        }
+
+                        return (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openReviewModal(order)}
+                            className="gap-1.5 font-medium rounded-xl text-xs border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 hover:text-amber-500"
+                          >
+                            <Star className="size-3.5 fill-amber-400 text-amber-400" />
+                            <span>Leave Review</span>
+                          </Button>
+                        );
+                      })()}
 
                       {order.status === 'PLACED' && (
                         <Button
@@ -511,21 +547,61 @@ export default function CustomerOrdersPage() {
             )}
 
             <div className="flex items-center justify-between pt-2 border-t border-border/40">
-              {detailedOrder?.status === 'DELIVERED' ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    if (detailedOrder) {
-                      openReviewModal(detailedOrder);
-                    }
-                  }}
-                  className="gap-1.5 font-medium rounded-xl text-xs border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 hover:text-amber-500"
-                >
-                  <Star className="size-3.5 fill-amber-400 text-amber-400" />
-                  <span>Leave Review</span>
-                </Button>
-              ) : (
+              {detailedOrder?.status === 'DELIVERED' ? (() => {
+                const detailedAvgRating =
+                  typeof detailedOrder.averageRating === 'number'
+                    ? detailedOrder.averageRating
+                    : detailedOrder.reviews && detailedOrder.reviews.length > 0
+                    ? Number(
+                        (
+                          detailedOrder.reviews.reduce((acc, r) => acc + r.rating, 0) /
+                          detailedOrder.reviews.length
+                        ).toFixed(1)
+                      )
+                    : null;
+
+                const detailedDisplayRating =
+                  detailedAvgRating !== null
+                    ? detailedAvgRating % 1 === 0
+                      ? detailedAvgRating.toFixed(0)
+                      : detailedAvgRating.toFixed(1)
+                    : null;
+
+                if (detailedDisplayRating !== null) {
+                  return (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        if (detailedOrder) {
+                          openReviewModal(detailedOrder);
+                        }
+                      }}
+                      className="gap-1.5 font-bold rounded-xl text-xs border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 hover:text-amber-500 transition-colors"
+                      title="Click to edit review"
+                    >
+                      <Star className="size-3.5 fill-amber-400 text-amber-400" />
+                      <span>{detailedDisplayRating}</span>
+                    </Button>
+                  );
+                }
+
+                return (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (detailedOrder) {
+                        openReviewModal(detailedOrder);
+                      }
+                    }}
+                    className="gap-1.5 font-medium rounded-xl text-xs border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 hover:text-amber-500"
+                  >
+                    <Star className="size-3.5 fill-amber-400 text-amber-400" />
+                    <span>Leave Review</span>
+                  </Button>
+                );
+              })() : (
                 <div />
               )}
               <Button variant="outline" onClick={() => setActiveOrderId(null)} className="rounded-xl">

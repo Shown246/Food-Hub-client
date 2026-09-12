@@ -27,6 +27,15 @@ export interface OrderStatusHistory {
   createdAt: string;
 }
 
+export interface OrderReview {
+  id: string;
+  mealId: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Order {
   id: string;
   orderNumber: string;
@@ -50,6 +59,8 @@ export interface Order {
   provider?: OrderProviderSummary;
   items?: OrderItem[];
   statusHistory?: OrderStatusHistory[];
+  reviews?: OrderReview[];
+  averageRating?: number | null;
 }
 export interface ProviderOrder {
   id: string;

@@ -5,7 +5,7 @@ import { getBackendAuthHeaders } from "@/lib/auth/backend-auth-headers";
 import { ApiErrorResponse, ApiResponse } from "@/types/api.type";
 import { AuthUser } from "@/types/auth.type";
 import { GetOrdersParams, Order } from "@/types/order.type";
-import { CreateReviewPayload, Review } from "@/types/review.type";
+import { CreateReviewPayload, Review, UpdateReviewPayload } from "@/types/review.type";
 import { logoutAction as authLogoutAction } from "@/app/(auth)/logout_action";
 import { setSessionIdentity } from "@/lib/auth/session-identity";
 
@@ -161,6 +161,52 @@ export const createCustomerReview = async (
     return {
       success: false,
       message: error?.response?.data?.message || "Failed to submit review",
+    };
+  }
+};
+
+export const updateCustomerReview = async (
+  reviewId: string,
+  payload: UpdateReviewPayload
+): Promise<ApiResponse<Review> | ApiErrorResponse> => {
+  try {
+    const headers = await getBackendAuthHeaders();
+    const body: Record<string, any> = {};
+    if (payload.rating !== undefined) {
+      body.rating = payload.rating;
+    }
+    if (payload.comment !== undefined) {
+      body.comment = payload.comment?.trim() ? payload.comment.trim() : null;
+    }
+
+    const response = await httpClient.patch<Review>(
+      `/api/reviews/${reviewId}`,
+      body,
+      { headers }
+    );
+    return response;
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error?.response?.data?.message || "Failed to update review",
+    };
+  }
+};
+
+export const deleteCustomerReview = async (
+  reviewId: string
+): Promise<ApiResponse<{ id: string; deleted: boolean }> | ApiErrorResponse> => {
+  try {
+    const headers = await getBackendAuthHeaders();
+    const response = await httpClient.delete<{ id: string; deleted: boolean }>(
+      `/api/reviews/${reviewId}`,
+      { headers }
+    );
+    return response;
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error?.response?.data?.message || "Failed to delete review",
     };
   }
 };

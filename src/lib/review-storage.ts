@@ -27,6 +27,17 @@ function addToStoredArray(key: string, orderId: string): void {
   }
 }
 
+function removeFromStoredArray(key: string, orderId: string): void {
+  if (typeof window === 'undefined' || !orderId) return;
+  try {
+    const existing = getStoredArray(key);
+    const updated = existing.filter((id) => id !== orderId);
+    localStorage.setItem(key, JSON.stringify(updated));
+  } catch (err) {
+    console.error(`Failed to update localStorage key "${key}":`, err);
+  }
+}
+
 export function getDismissedReviewOrderIds(): string[] {
   return getStoredArray(DISMISSED_REVIEWS_KEY);
 }
@@ -51,6 +62,10 @@ export function isReviewCompleted(orderId: string): boolean {
 
 export function markReviewAsCompleted(orderId: string): void {
   addToStoredArray(COMPLETED_REVIEWS_KEY, orderId);
+}
+
+export function removeReviewFromCompleted(orderId: string): void {
+  removeFromStoredArray(COMPLETED_REVIEWS_KEY, orderId);
 }
 
 export function isReviewDismissedOrCompleted(orderId: string): boolean {

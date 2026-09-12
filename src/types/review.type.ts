@@ -7,6 +7,11 @@ export interface CreateReviewPayload {
   comment?: string | null;
 }
 
+export interface UpdateReviewPayload {
+  rating?: number; // 1 to 5
+  comment?: string | null;
+}
+
 export interface Review {
   id: string;
   rating: number;
