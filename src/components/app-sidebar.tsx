@@ -25,6 +25,9 @@ import {
   UtensilsIcon,
   ShieldCheckIcon,
   StoreIcon,
+  LayoutDashboardIcon,
+  UsersIcon,
+  LayersIcon,
 } from "lucide-react";
 import { logoutAction } from "@/app/console/customer/_actions";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -89,13 +92,35 @@ export function AppSidebar({ initialUser, ...props }: AppSidebarProps) {
     },
   ];
 
+  const adminNavItems = [
+    {
+      title: "Dashboard",
+      url: "/console/admin",
+      icon: LayoutDashboardIcon,
+      isActive: pathname === "/console/admin",
+    },
+    {
+      title: "Users",
+      url: "/console/admin/users",
+      icon: UsersIcon,
+      isActive: pathname.startsWith("/console/admin/users"),
+    },
+    {
+      title: "Categories",
+      url: "/console/admin/categories",
+      icon: LayersIcon,
+      isActive: pathname.startsWith("/console/admin/categories"),
+    },
+    {
+      title: "Orders",
+      url: "/console/admin/orders",
+      icon: ShoppingBagIcon,
+      isActive: pathname.startsWith("/console/admin/orders"),
+    },
+  ];
+
   const navItems = user?.role === "ADMIN"
-    ? [{
-        title: "Admin dashboard",
-        url: "/console/admin",
-        icon: ShieldCheckIcon,
-        isActive: pathname.startsWith("/console/admin"),
-      }]
+    ? adminNavItems
     : user?.role === "PROVIDER"
       ? providerNavItems
       : customerNavItems;

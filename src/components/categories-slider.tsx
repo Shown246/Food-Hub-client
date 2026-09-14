@@ -5,7 +5,7 @@ import useEmblaCarousel from "embla-carousel-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import Link from "next/link";
-import Image from "next/image";
+import { MealImage } from "./ui/meal-image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Category } from "@/types/meal.type";
 
@@ -90,21 +90,15 @@ export function CategoriesSlider({ items }: { items: Category[] }) {
                 <Card className="group h-full overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1.5 border-border/50 bg-card">
                   <CardHeader className="p-1">
                     <div className="relative aspect-square w-full overflow-hidden">
-                      {item.image || item.imageUrl ? (
-                        <Image
-                          src={item.image || item.imageUrl || ""}
-                          alt={item.name}
-                          fill
-                          sizes="(max-width: 640px) 224px, 256px"
-                          loading="lazy"
-                          className="object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-muted">
-                          <span className="text-4xl">🍜</span>
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <MealImage
+                        src={item.image || item.imageUrl}
+                        alt={item.name}
+                        categoryName={item.name}
+                        categorySlug={item.slug}
+                        sizes="(max-width: 640px) 224px, 256px"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                     </div>
                   </CardHeader>
                   <CardContent className="p-4">

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+import { ProviderLogo } from "@/components/ui/provider-logo";
 import { useQuery } from "@tanstack/react-query";
 import { Store, MapPin, Phone, Clock, Utensils, ArrowRight, ChefHat, Star } from "lucide-react";
 import { Card, CardFooter } from "@/components/ui/card";
@@ -19,20 +19,13 @@ function HomeProviderCard({ provider }: { provider: MealProvider }) {
     <Card className="group relative flex flex-col justify-between overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1.5 border border-border/70 bg-card rounded-2xl">
       {/* Top Banner / Logo Section */}
       <div className="relative h-44 w-full overflow-hidden bg-gradient-to-br from-amber-500/10 via-primary/5 to-orange-500/10 flex items-center justify-center p-6">
-        {provider.logoUrl ? (
-          <Image
-            src={provider.logoUrl}
-            alt={provider.name}
-            width={96}
-            height={96}
-            sizes="96px"
-            className="h-24 w-24 rounded-full object-cover border-4 border-background shadow-md transition-transform duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex flex-col items-center justify-center p-4 rounded-full bg-background/80 border-2 border-primary/20 text-primary group-hover:scale-110 transition-transform duration-500 shadow-sm">
-            <Store className="size-10 stroke-[1.5]" />
-          </div>
-        )}
+        <ProviderLogo
+          src={provider.logoUrl}
+          name={provider.name}
+          size="lg"
+          shape="circle"
+          className="size-24 rounded-full border-4 border-background shadow-md transition-transform duration-500 group-hover:scale-105"
+        />
 
         {/* Top Badges Overlay */}
         <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none">

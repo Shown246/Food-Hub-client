@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Order, OrderReview } from '@/types/order.type';
+import { ProviderLogo } from '@/components/ui/provider-logo';
 import {
   createCustomerReview,
   updateCustomerReview,
@@ -306,17 +307,13 @@ export function OrderReviewModal({
             {/* HEADER */}
             <DialogHeader className="text-left space-y-3 pb-3 border-b border-border/40 shrink-0">
               <div className="flex items-center gap-3">
-                {order?.provider?.logoUrl ? (
-                  <img
-                    src={order.provider.logoUrl}
-                    alt={order.provider.name || 'Restaurant'}
-                    className="size-10 rounded-xl object-cover border border-border/60 shrink-0"
-                  />
-                ) : (
-                  <div className="size-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
-                    <Store className="size-5" />
-                  </div>
-                )}
+                <ProviderLogo
+                  src={order?.provider?.logoUrl}
+                  name={order?.provider?.name || 'Restaurant'}
+                  size="sm"
+                  shape="rounded"
+                  className="size-10 rounded-xl border border-border/60 shrink-0"
+                />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-sm text-foreground truncate">

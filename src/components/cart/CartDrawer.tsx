@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { MealImage } from '@/components/ui/meal-image';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/cart-context';
 import {
@@ -130,20 +130,16 @@ export function CartDrawer() {
                 <div key={item.meal.id} className="py-4 first:pt-0 last:pb-0 space-y-2.5">
                   <div className="flex items-start gap-3">
                     {/* Meal Thumbnail */}
-                    <div className="relative size-16 rounded-xl overflow-hidden bg-muted shrink-0 border border-border/50">
-                      {item.meal.imageUrl ? (
-                        <Image
-                          src={item.meal.imageUrl}
-                          alt={item.meal.name}
-                          fill
-                          sizes="64px"
-                          className="size-full object-cover"
-                        />
-                      ) : (
-                        <div className="size-full flex items-center justify-center text-muted-foreground/50">
-                          <Utensils className="size-6 stroke-[1.5]" />
-                        </div>
-                      )}
+                    <div className="relative size-16 rounded-xl overflow-hidden shrink-0 border border-border/50">
+                      <MealImage
+                        src={item.meal.imageUrl}
+                        alt={item.meal.name}
+                        categoryName={item.meal.category?.name}
+                        categorySlug={item.meal.category?.slug}
+                        sizes="64px"
+                        className="size-full object-cover"
+                        variant="thumbnail"
+                      />
                     </div>
 
                     {/* Meal Details */}

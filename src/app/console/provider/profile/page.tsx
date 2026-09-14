@@ -22,6 +22,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ProviderLogo } from '@/components/ui/provider-logo';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Store,
@@ -349,12 +350,13 @@ export default function ProviderProfilePage() {
           {/* Business Overview Card */}
           <Card className="border border-border/60 shadow-sm rounded-2xl overflow-hidden">
             <div className="bg-gradient-to-br from-primary/15 via-primary/5 to-amber-500/10 p-6 flex flex-col items-center text-center border-b border-border/40">
-              <Avatar className="size-24 border-4 border-background shadow-md mb-3 rounded-2xl">
-                <AvatarImage src={currentLogoUrl} alt={currentBusinessName} className="object-cover" />
-                <AvatarFallback className="bg-primary text-primary-foreground font-bold text-2xl rounded-2xl">
-                  {currentBusinessName.substring(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+              <ProviderLogo
+                src={currentLogoUrl}
+                name={currentBusinessName}
+                size="lg"
+                shape="rounded"
+                className="size-24 border-4 border-background shadow-md mb-3 rounded-2xl"
+              />
 
               <h2 className="font-bold text-xl text-foreground truncate max-w-full">
                 {currentBusinessName}
@@ -676,16 +678,13 @@ export default function ProviderProfilePage() {
                         className="rounded-xl border-border/80 focus-visible:ring-primary flex-1"
                       />
                       {logoUrl && (
-                        <div className="size-10 rounded-xl overflow-hidden border border-border/60 bg-muted/30 shrink-0">
-                          <img
-                            src={logoUrl}
-                            alt="Logo preview"
-                            className="size-full object-cover"
-                            onError={(e) => {
-                              (e.target as HTMLElement).style.display = 'none';
-                            }}
-                          />
-                        </div>
+                        <ProviderLogo
+                          src={logoUrl}
+                          name={businessName || 'Restaurant'}
+                          size="sm"
+                          shape="rounded"
+                          className="size-10 rounded-xl border border-border/60 shrink-0"
+                        />
                       )}
                     </div>
                     <p className="text-[11px] text-muted-foreground">

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
+import { MealImage } from '@/components/ui/meal-image';
 import { useCart } from '@/context/cart-context';
 import {
   Dialog,
@@ -56,23 +56,16 @@ export function MealCustomizeModal() {
     >
       <DialogContent className="max-w-md p-0 overflow-hidden border-border/70 rounded-3xl bg-card shadow-2xl">
         {/* Meal Image Header */}
-        <div className="relative h-44 w-full overflow-hidden bg-gradient-to-br from-amber-500/10 via-primary/5 to-orange-500/10 flex items-center justify-center">
-          {meal.imageUrl ? (
-            <Image
-              src={meal.imageUrl}
-              alt={meal.name}
-              fill
-              sizes="(max-width: 640px) 100vw, 448px"
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex flex-col items-center justify-center text-primary/40">
-              <Utensils className="size-12 stroke-[1.5]" />
-              <span className="text-xs font-medium mt-1 text-muted-foreground/60">
-                {meal.name}
-              </span>
-            </div>
-          )}
+        <div className="relative h-44 w-full overflow-hidden flex items-center justify-center">
+          <MealImage
+            src={meal.imageUrl}
+            alt={meal.name}
+            categoryName={meal.category?.name}
+            categorySlug={meal.category?.slug}
+            sizes="(max-width: 640px) 100vw, 448px"
+            className="h-full w-full object-cover"
+            variant="modal"
+          />
 
           {/* Badges Overlay */}
           <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none">

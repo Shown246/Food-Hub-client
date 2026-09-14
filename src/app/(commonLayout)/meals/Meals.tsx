@@ -32,7 +32,7 @@ import {
 } from 'lucide-react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
+import { MealImage } from '@/components/ui/meal-image';
 import { Category, Meal } from '@/types/meal.type';
 import { currentUserQueryOptions } from '@/queries/current-user.query';
 import { useCart } from '@/context/cart-context';
@@ -107,24 +107,15 @@ const MealCard = ({
   return (
     <Card className="group relative flex flex-col justify-between overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-border/60 bg-card rounded-2xl">
       {/* Top Banner / Image Section */}
-      <div className="relative h-48 w-full overflow-hidden bg-gradient-to-br from-amber-500/10 via-primary/5 to-orange-500/10 flex items-center justify-center">
-        {meal.imageUrl ? (
-          <Image
-            src={meal.imageUrl}
-            alt={meal.name}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
-          />
-        ) : (
-          <div className="flex flex-col items-center justify-center text-primary/40 group-hover:scale-110 transition-transform duration-500">
-            <Utensils className="size-14 stroke-[1.5]" />
-            <span className="text-xs font-medium mt-1 text-muted-foreground/60">
-              {meal.name}
-            </span>
-          </div>
-        )}
+      <div className="relative h-48 w-full overflow-hidden flex items-center justify-center">
+        <MealImage
+          src={meal.imageUrl}
+          alt={meal.name}
+          categoryName={meal.category?.name}
+          categorySlug={meal.category?.slug}
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
 
         {/* Top Badges Overlay */}
         <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none">

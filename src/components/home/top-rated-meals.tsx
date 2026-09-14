@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { MealImage } from "@/components/ui/meal-image";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -33,17 +33,6 @@ import { useCart } from "@/context/cart-context";
 import { currentUserQueryOptions } from "@/queries/current-user.query";
 import { cn } from "@/lib/utils";
 
-// Themed gradients for meals without images
-const CATEGORY_GRADIENTS: Record<string, string> = {
-  bangladeshi: "from-amber-600/20 via-orange-600/15 to-yellow-600/20",
-  indian: "from-red-600/20 via-amber-600/15 to-orange-600/20",
-  chinese: "from-rose-600/20 via-red-600/15 to-amber-600/20",
-  pizza: "from-orange-600/20 via-amber-500/15 to-yellow-500/20",
-  burgers: "from-amber-700/20 via-yellow-600/15 to-orange-600/20",
-  beverages: "from-cyan-600/20 via-blue-600/15 to-teal-600/20",
-  desserts: "from-pink-600/20 via-rose-500/15 to-purple-600/20",
-};
-
 interface HomeMealCardProps {
   meal: Meal;
   onAddToOrder: (meal: Meal) => void;
@@ -56,30 +45,18 @@ function HomeMealCard({ meal, onAddToOrder, cartQuantity }: HomeMealCardProps) {
       ? meal.price.toFixed(2)
       : parseFloat(meal.price || "0").toFixed(2);
 
-  const categorySlug = meal.category?.slug?.toLowerCase() || "";
-  const bgGradient = CATEGORY_GRADIENTS[categorySlug] || "from-amber-500/15 via-primary/5 to-orange-500/15";
-
   return (
     <Card className="group relative flex flex-col justify-between overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1.5 border border-border/70 bg-card rounded-2xl">
       {/* Top Banner / Image Section */}
-      <div className={cn("relative h-48 w-full overflow-hidden bg-gradient-to-br flex items-center justify-center", bgGradient)}>
-        {meal.imageUrl ? (
-          <Image
-            src={meal.imageUrl}
-            alt={meal.name}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
-          />
-        ) : (
-          <div className="flex flex-col items-center justify-center text-primary/50 group-hover:scale-110 transition-transform duration-500">
-            <Utensils className="size-14 stroke-[1.5]" />
-            <span className="text-xs font-semibold mt-1 text-muted-foreground/70">
-              {meal.category?.name || meal.name}
-            </span>
-          </div>
-        )}
+      <div className="relative h-48 w-full overflow-hidden flex items-center justify-center">
+        <MealImage
+          src={meal.imageUrl}
+          alt={meal.name}
+          categoryName={meal.category?.name}
+          categorySlug={meal.category?.slug}
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
 
         {/* Top Badges Overlay */}
         <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none">
