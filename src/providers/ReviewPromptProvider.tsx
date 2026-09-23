@@ -7,18 +7,24 @@ import React, {
   useEffect,
   useRef,
   useCallback,
+  useMemo,
 } from 'react';
+import dynamic from 'next/dynamic';
 import { useQuery } from '@tanstack/react-query';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { getCustomerOrders, getDeliveredOrderDetails } from '@/app/console/customer/_actions';
 import { Order, OrderStatus } from '@/types/order.type';
 import { ReviewPromptContextType } from '@/types/review.type';
-import { OrderReviewModal } from '@/components/reviews/OrderReviewModal';
 import {
   isReviewDismissedOrCompleted,
   markReviewAsDismissed,
   markReviewAsCompleted,
 } from '@/lib/review-storage';
+
+const OrderReviewModal = dynamic(
+  () => import('@/components/reviews/OrderReviewModal').then((mod) => mod.OrderReviewModal),
+  { ssr: false }
+);
 
 const ReviewPromptContext = createContext<ReviewPromptContextType | null>(null);
 
@@ -215,16 +221,19 @@ export function ReviewPromptProvider({ children }: ReviewPromptProviderProps) {
     promptedOrdersRef.current.add(orderId);
   }, []);
 
+  const contextValue = useMemo(
+    () => ({
+      openReviewModal,
+      closeReviewModal,
+      dismissReview,
+      isModalOpen,
+      activeOrder,
+    }),
+    [openReviewModal, closeReviewModal, dismissReview, isModalOpen, activeOrder]
+  );
+
   return (
-    <ReviewPromptContext.Provider
-      value={{
-        openReviewModal,
-        closeReviewModal,
-        dismissReview,
-        isModalOpen,
-        activeOrder,
-      }}
-    >
+    <ReviewPromptContext.Provider value={contextValue}>
       {children}
       {mounted && (
         <ReviewPromptWatcher
@@ -234,14 +243,16 @@ export function ReviewPromptProvider({ children }: ReviewPromptProviderProps) {
           promptedOrdersRef={promptedOrdersRef}
         />
       )}
-      <OrderReviewModal
-        isOpen={isModalOpen}
-        onClose={closeReviewModal}
-        order={activeOrder}
-        isLoadingOrder={isLoadingOrder}
-        onDismiss={dismissReview}
-        onCompleted={completeReview}
-      />
+      {(isModalOpen || activeOrder) && (
+        <OrderReviewModal
+          isOpen={isModalOpen}
+          onClose={closeReviewModal}
+          order={activeOrder}
+          isLoadingOrder={isLoadingOrder}
+          onDismiss={dismissReview}
+          onCompleted={completeReview}
+        />
+      )}
     </ReviewPromptContext.Provider>
   );
 }

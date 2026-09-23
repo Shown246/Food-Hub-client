@@ -59,7 +59,7 @@ export default function CustomerProfilePage() {
       setDefaultDeliveryAddress(user.defaultDeliveryAddress || '');
       setProfileImageUrl(user.profileImageUrl || '');
     }
-  }, [user?.id]);
+  }, [user?.fullName, user?.phone, user?.defaultDeliveryAddress, user?.profileImageUrl]);
 
   // Mutation to update profile
   const updateMutation = useMutation({

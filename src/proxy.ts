@@ -3,7 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 export function proxy(request: NextRequest) {
   const token =
     request.cookies.get("better-auth.session_token")?.value ??
-    request.cookies.get("__Secure-better-auth.session_token")?.value;
+    request.cookies.get("__Secure-better-auth.session_token")?.value ??
+    request.cookies.get("accessToken")?.value;
   const identity = request.cookies.get("foodhub.session_identity")?.value;
   const hasLocalSession = Boolean(token && identity);
   const { pathname } = request.nextUrl;

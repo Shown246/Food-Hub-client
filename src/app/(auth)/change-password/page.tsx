@@ -20,7 +20,7 @@ export default async function ChangePasswordPage({ searchParams }: ChangePasswor
     if (session.user.role === "PROVIDER") {
       redirect("/console/provider/profile?tab=security");
     } else if (session.user.role === "ADMIN") {
-      redirect("/console/admin");
+      redirect("/console/admin/profile#security-settings");
     } else {
       redirect("/console/customer/profile#security-settings");
     }

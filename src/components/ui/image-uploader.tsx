@@ -45,6 +45,16 @@ export function ImageUploader({
   const [manualInput, setManualInput] = useState(value || '');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const objectUrlRef = useRef<string | null>(null);
+
+  // Clean up any lingering object URL on unmount
+  useEffect(() => {
+    return () => {
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+      }
+    };
+  }, []);
 
   // Sync external value changes
   useEffect(() => {
@@ -80,8 +90,12 @@ export function ImageUploader({
       return;
     }
 
-    // Instant local preview
+    // Revoke previous local preview if one exists
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+    }
     const objectUrl = URL.createObjectURL(file);
+    objectUrlRef.current = objectUrl;
     setPreviewUrl(objectUrl);
     setUploadStatus('Optimizing image...');
     notifyUploading(true);
@@ -101,10 +115,20 @@ export function ImageUploader({
         }
       );
 
+      // Clean up object URL once public URL is ready
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+        objectUrlRef.current = null;
+      }
+
       // Update parent with the permanent Cloudflare R2 public URL
       onChange(publicUrl);
       setPreviewUrl(publicUrl);
     } catch (err: any) {
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+        objectUrlRef.current = null;
+      }
       setErrorMessage(err?.message || 'Failed to upload image to Cloudflare R2.');
       setPreviewUrl(value || null);
     } finally {

@@ -1,9 +1,10 @@
-import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import { getProviders } from './_action';
+import { getQueryClient } from '@/lib/query-client';
 import Providers from './Providers';
 
 const ProvidersPage = async () => {
-  const queryClient = new QueryClient();
+  const queryClient = getQueryClient();
   await queryClient.prefetchQuery({
     queryKey: ['providers'],
     queryFn: getProviders,

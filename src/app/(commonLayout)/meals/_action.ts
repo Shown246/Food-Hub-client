@@ -1,3 +1,5 @@
+'use server';
+
 import { httpClient } from "@/lib/axios/httpClient";
 import { Meal, PaginationMeta } from "@/types/meal.type";
 

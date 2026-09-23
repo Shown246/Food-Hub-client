@@ -16,6 +16,10 @@ export async function getCurrentUserAction(): Promise<
 > {
   try {
     const headers = await getBackendAuthHeaders();
+    if (!headers.Cookie && !headers.Authorization) {
+      return { success: false, message: "Not authenticated" };
+    }
+
     const response = await httpClient.get<CurrentUserData>("/api/auth/me", {
       headers,
     });

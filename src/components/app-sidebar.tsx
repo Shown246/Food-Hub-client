@@ -49,7 +49,7 @@ export function AppSidebar({ initialUser, ...props }: AppSidebarProps) {
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true);
-      queryClient.removeQueries({ queryKey: currentUserQueryKey });
+      queryClient.clear();
       await logoutAction();
     } catch (error) {
       console.error("Logout failed:", error);
@@ -116,6 +116,12 @@ export function AppSidebar({ initialUser, ...props }: AppSidebarProps) {
       url: "/console/admin/orders",
       icon: ShoppingBagIcon,
       isActive: pathname.startsWith("/console/admin/orders"),
+    },
+    {
+      title: "Profile",
+      url: "/console/admin/profile",
+      icon: UserIcon,
+      isActive: pathname.startsWith("/console/admin/profile"),
     },
   ];
 

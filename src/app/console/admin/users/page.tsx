@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useTransition, Suspense } from 'react';
+import React, { useState, useEffect, useTransition, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import {
   getAdminUsers,
   getAdminUserById,
@@ -109,14 +109,16 @@ function AdminUsersContent() {
     message: string;
   } | null>(null);
 
-  const [, startTransition] = useTransition();
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const handleSearchChange = (val: string) => {
     setSearch(val);
-    startTransition(() => {
-      setDebouncedSearch(val);
-      setCurrentPage(1);
-    });
   };
 
   const handleResetFilters = () => {
@@ -147,6 +149,7 @@ function AdminUsersContent() {
   } = useQuery({
     queryKey: ['admin-users', queryParams],
     queryFn: () => getAdminUsers(queryParams),
+    placeholderData: keepPreviousData,
   });
 
   const users: AdminUserListItem[] =

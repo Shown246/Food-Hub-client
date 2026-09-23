@@ -1,7 +1,8 @@
-import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import { Suspense } from 'react';
 import { getMeals } from './_action';
 import { getCategories } from '@/components/_category.action';
+import { getQueryClient } from '@/lib/query-client';
 import Meals from './Meals';
 
 interface MealsPageProps {
@@ -78,9 +79,9 @@ const MealsPage = async ({ searchParams }: MealsPageProps) => {
     search,
   };
 
-  const queryClient = new QueryClient();
+  const queryClient = getQueryClient();
 
-  await Promise.all([
+  await Promise.allSettled([
     queryClient.prefetchQuery({
       queryKey: ['meals', queryParams],
       queryFn: () => getMeals(queryParams),

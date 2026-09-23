@@ -2,11 +2,11 @@ import { getCategories } from "./_category.action";
 import { CategoriesSlider } from "./categories-slider";
 import { cn } from "@/lib/utils";
 import { UtensilsCrossed } from "lucide-react";
-import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
+import { getQueryClient } from "@/lib/query-client";
 import { Category } from "@/types/meal.type";
 
 export async function Categories() {
-  const queryClient = new QueryClient();
+  const queryClient = getQueryClient();
   let categories;
   try {
     categories = await queryClient.fetchQuery({
@@ -20,7 +20,7 @@ export async function Categories() {
   const items = categories?.success ? (Array.isArray(categories.data) ? categories.data : []) : [];
 
   return (
-    <div className={cn("space-y-6", "mt-20 mx-40")}>
+    <div className="space-y-6 mt-16 md:mt-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Premium Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between relative">
         <div className="space-y-1">
@@ -37,9 +37,7 @@ export async function Categories() {
       </div>
 
       {/* Client Slider Component */}
-      <HydrationBoundary state={dehydrate(queryClient)}>
-        <CategoriesSlider items={items} />
-      </HydrationBoundary>
+      <CategoriesSlider items={items} />
     </div>
   );
 }

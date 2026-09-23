@@ -8,12 +8,17 @@ import { deleteSessionIdentity } from "@/lib/auth/session-identity";
 
 export const logoutAction = async (): Promise<void> => {
   try {
-    const sessionToken = await getCookie("better-auth.session_token");
+    const sessionToken =
+      (await getCookie("better-auth.session_token")) ||
+      (await getCookie("__Secure-better-auth.session_token"));
     const accessToken = await getCookie("accessToken");
     const token = sessionToken || accessToken;
 
     const cookieHeader: string[] = [];
-    if (sessionToken) cookieHeader.push(`better-auth.session_token=${sessionToken}`);
+    if (sessionToken) {
+      cookieHeader.push(`better-auth.session_token=${sessionToken}`);
+      cookieHeader.push(`__Secure-better-auth.session_token=${sessionToken}`);
+    }
     if (accessToken) cookieHeader.push(`accessToken=${accessToken}`);
 
     const reqHeaders = await getNextHeaders();
@@ -38,6 +43,7 @@ export const logoutAction = async (): Promise<void> => {
     console.error("Logout API call failed:", error);
   } finally {
     await deleteCookie("better-auth.session_token");
+    await deleteCookie("__Secure-better-auth.session_token");
     await deleteCookie("accessToken");
     await deleteCookie("refreshToken");
     await deleteCookie("userRole");

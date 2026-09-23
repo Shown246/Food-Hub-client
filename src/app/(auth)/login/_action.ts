@@ -2,6 +2,7 @@
 
 import { httpClient } from "@/lib/axios/httpClient";
 import { setTokenInCookies } from "@/lib/tokenUtils";
+import { forwardSetCookieHeaders } from "@/lib/cookieUtils";
 import { ApiErrorResponse } from "@/types/api.type";
 import { ILoginResponse } from "@/types/auth.type";
 import { IloginPayload, loginZodSchema } from "@/zod/auth.validation";
@@ -24,7 +25,11 @@ export const loginAction = async (
   }
 
   try {
-    const response = await httpClient.post<ILoginResponse>("/api/auth/login", parseedPayload.data, {});
+    const { data: response, headers } = await httpClient.postWithMeta<ILoginResponse>(
+      "/api/auth/login",
+      parseedPayload.data,
+      {}
+    );
     
     if (!response.success) {
       return {
@@ -38,6 +43,12 @@ export const loginAction = async (
         message: "LogIn Failed"
       }
     }
+
+    // Forward any Set-Cookie headers from the backend response into Next.js cookies
+    if (headers && headers["set-cookie"]) {
+      await forwardSetCookieHeaders(headers["set-cookie"]);
+    }
+
     const { token, accessToken, refreshToken, user } = response.data;
     if (!user) {
       return {
@@ -45,9 +56,23 @@ export const loginAction = async (
         message: "User data not found",
       };
     }
-    if(token){await setTokenInCookies("better-auth.session_token", token)}
-    if(accessToken){await setTokenInCookies("accessToken", accessToken)}
-    if(refreshToken){await setTokenInCookies("refreshToken", refreshToken)}
+
+    if (user.status === "SUSPENDED") {
+      return {
+        success: false,
+        message: "Your account is suspended. Please contact support.",
+      };
+    }
+
+    if (token) {
+      await setTokenInCookies("better-auth.session_token", token);
+    }
+    if (accessToken) {
+      await setTokenInCookies("accessToken", accessToken);
+    }
+    if (refreshToken) {
+      await setTokenInCookies("refreshToken", refreshToken);
+    }
     await setSessionIdentity({
       user,
       providerProfile: response.data.providerProfile,

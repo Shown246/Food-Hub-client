@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { getOrders, getOrderById, updateOrderStatus } from '../_actions';
 import { Order, OrderStatus, ProviderOrder } from '@/types/order.type';
 import { Card, CardContent } from '@/components/ui/card';
@@ -135,6 +135,7 @@ export default function ProviderOrdersPage() {
   const { data: ordersRes, isLoading, isError, refetch, isRefetching } = useQuery({
     queryKey: ['provider-orders'],
     queryFn: () => getOrders(),
+    placeholderData: keepPreviousData,
   });
 
   // Fetch detailed order if modal opened

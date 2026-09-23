@@ -2,6 +2,7 @@
 
 import { httpClient } from "@/lib/axios/httpClient";
 import { setTokenInCookies } from "@/lib/tokenUtils";
+import { forwardSetCookieHeaders } from "@/lib/cookieUtils";
 import { ApiErrorResponse } from "@/types/api.type";
 import { ISignupResponse } from "@/types/auth.type";
 import {
@@ -62,7 +63,7 @@ export const signupAction = async (
   }
 
   try {
-    const response = await httpClient.post<ISignupResponse>(
+    const { data: response, headers } = await httpClient.postWithMeta<ISignupResponse>(
       "/api/auth/register",
       apiPayload,
       {}
@@ -82,11 +83,16 @@ export const signupAction = async (
       };
     }
 
-    const { token, accessToken, refreshToken, user, requireVerification, emailVerified } = response.data;
+    if (headers && headers["set-cookie"]) {
+      await forwardSetCookieHeaders(headers["set-cookie"]);
+    }
 
-    // If verification is required (or email is unverified and no session token was issued),
+    const { token, accessToken, refreshToken, user, requireVerification, emailVerified } = response.data;
+    const hasSessionCookie = Boolean(headers?.["set-cookie"]?.length || token || accessToken);
+
+    // If verification is required (or email is unverified and no session token/cookie was issued),
     // return success with verification flag so the UI can prompt the user to check their email.
-    if (requireVerification || emailVerified === false || !token) {
+    if (requireVerification || (emailVerified === false && !hasSessionCookie)) {
       return {
         success: true,
         requireVerification: true,

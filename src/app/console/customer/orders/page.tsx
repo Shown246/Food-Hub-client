@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import {
   getCustomerOrders,
   getCustomerOrderById,
@@ -101,6 +101,7 @@ export default function CustomerOrdersPage() {
   const { data: ordersRes, isLoading, isError, refetch, isRefetching } = useQuery({
     queryKey: ['customer-orders', selectedStatus, selectedSort],
     queryFn: () => getCustomerOrders({ status: selectedStatus || undefined, sort: selectedSort }),
+    placeholderData: keepPreviousData,
   });
   // Fetch detailed order if modal opened
   const { data: detailRes, isLoading: isDetailLoading } = useQuery({
@@ -431,12 +432,26 @@ export default function CustomerOrdersPage() {
             ) : (
               <div className="space-y-6">
                 {/* Status Banner */}
-                <div className="flex items-center justify-between p-4 rounded-xl bg-muted/40 border border-border/40">
-                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    Status
-                  </span>
-                  <div>{getStatusBadge(detailedOrder.status)}</div>
-                </div>
+                {detailedOrder.status === 'CANCELLED' ? (
+                  <div className="flex items-center gap-3 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400">
+                    <XCircle className="size-5 shrink-0" />
+                    <div>
+                      <p className="font-semibold text-sm">Order Cancelled</p>
+                      {detailedOrder.cancellationReason && (
+                        <p className="text-xs text-rose-500/90 mt-0.5">
+                          Reason: {detailedOrder.cancellationReason}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between p-4 rounded-xl bg-muted/40 border border-border/40">
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      Status
+                    </span>
+                    <div>{getStatusBadge(detailedOrder.status)}</div>
+                  </div>
+                )}
 
                 {/* Provider Information */}
                 {detailedOrder.provider && (

@@ -1,4 +1,6 @@
-import { httpClient } from "@/lib/axios/httpClient"
+'use server';
+
+import { httpClient } from "@/lib/axios/httpClient";
 import { MealProvider } from "@/types/meal.type";
 
 export const getProviders = async () => {

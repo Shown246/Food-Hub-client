@@ -1,22 +1,28 @@
 import { ApiResponse } from '@/types/api.type';
 import axios from 'axios';
+import http from 'http';
+import https from 'https';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 if (!API_BASE_URL) {
   throw new Error('NEXT_PUBLIC_API_URL is not defined in environment variables');
 }
-const axiosInstance = () => {
-  const instance = axios.create({
-    baseURL: API_BASE_URL,
-    timeout: 30000,
-    withCredentials: true,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
 
-  return instance;
-};
+const isServer = typeof window === 'undefined';
+const httpAgent = isServer ? new http.Agent({ keepAlive: true, maxSockets: 50 }) : undefined;
+const httpsAgent = isServer ? new https.Agent({ keepAlive: true, maxSockets: 50 }) : undefined;
+
+const axiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 30000,
+  withCredentials: true,
+  httpAgent,
+  httpsAgent,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
 export interface ApiOptions {
   data?: any;
   headers?: Record<string, string>;
@@ -25,7 +31,7 @@ export interface ApiOptions {
 
 const httpGet = async <TData>(endpoint: string, options?: ApiOptions): Promise<ApiResponse<TData>> => {
   try {
-    const response = await axiosInstance().get<ApiResponse<TData>>(endpoint, { 
+    const response = await axiosInstance.get<ApiResponse<TData>>(endpoint, { 
         params: options?.params, 
         headers: options?.headers });
     return response.data;
@@ -37,7 +43,7 @@ const httpGet = async <TData>(endpoint: string, options?: ApiOptions): Promise<A
 
 const httpPost = async <TData>(endpoint: string, data?: unknown, options?: ApiOptions): Promise<ApiResponse<TData>> => {
   try {
-    const response = await axiosInstance().post<ApiResponse<TData>>(endpoint, data, { 
+    const response = await axiosInstance.post<ApiResponse<TData>>(endpoint, data, { 
         params: options?.params, 
         headers: options?.headers });
     return response.data;
@@ -49,7 +55,7 @@ const httpPost = async <TData>(endpoint: string, data?: unknown, options?: ApiOp
 
 const httpPut = async <TData>(endpoint: string, data?: unknown, options?: ApiOptions): Promise<ApiResponse<TData>> => {
   try {
-    const response = await axiosInstance().put<ApiResponse<TData>>(endpoint, data, { 
+    const response = await axiosInstance.put<ApiResponse<TData>>(endpoint, data, { 
         params: options?.params, 
         headers: options?.headers });
     return response.data;
@@ -61,7 +67,7 @@ const httpPut = async <TData>(endpoint: string, data?: unknown, options?: ApiOpt
 
 const httpPatch = async <TData>(endpoint: string, data?: unknown, options?: ApiOptions): Promise<ApiResponse<TData>> => {
   try {
-    const response = await axiosInstance().patch<ApiResponse<TData>>(endpoint, data, { 
+    const response = await axiosInstance.patch<ApiResponse<TData>>(endpoint, data, { 
         params: options?.params, 
         headers: options?.headers });
     return response.data;
@@ -73,19 +79,42 @@ const httpPatch = async <TData>(endpoint: string, data?: unknown, options?: ApiO
 
 const httpDelete = async <TData>(endpoint: string, options?: ApiOptions): Promise<ApiResponse<TData>> => {
   try {
-    const response = await axiosInstance().delete<ApiResponse<TData>>(endpoint, { 
-        params: options?.params, 
-        headers: options?.headers });
+    const response = await axiosInstance.delete<ApiResponse<TData>>(endpoint, { 
+      params: options?.params, 
+      headers: options?.headers 
+    });
     return response.data;
   } catch (error) {
     console.error(`DELETE request to ${endpoint} failed:`, (error as any)?.message || error);
     throw error;
   }
 };
+
+const httpPostWithMeta = async <TData>(
+  endpoint: string,
+  data?: unknown,
+  options?: ApiOptions
+): Promise<{ data: ApiResponse<TData>; headers: Record<string, any> }> => {
+  try {
+    const response = await axiosInstance.post<ApiResponse<TData>>(endpoint, data, {
+      params: options?.params,
+      headers: options?.headers,
+    });
+    return {
+      data: response.data,
+      headers: response.headers,
+    };
+  } catch (error) {
+    console.error(`POST request to ${endpoint} failed:`, (error as any)?.message || error);
+    throw error;
+  }
+};
+
 export const httpClient = {
   get: httpGet,
   post: httpPost,
+  postWithMeta: httpPostWithMeta,
   put: httpPut,
   patch: httpPatch,
   delete: httpDelete,
-};
+};

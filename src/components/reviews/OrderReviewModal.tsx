@@ -173,7 +173,12 @@ export function OrderReviewModal({
           failedItems.push(itemsToProcess[index].mealName || itemsToProcess[index].name || 'Meal');
         } else if (!res.value.success) {
           const msg = res.value.message?.toLowerCase() || '';
-          if (!msg.includes('already')) {
+          const isConflictOrAlready =
+            msg.includes('already') ||
+            msg.includes('conflict') ||
+            msg.includes('exist') ||
+            msg.includes('duplicate');
+          if (!isConflictOrAlready) {
             failedItems.push(itemsToProcess[index].mealName || itemsToProcess[index].name || 'Meal');
           }
         }

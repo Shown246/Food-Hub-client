@@ -1,3 +1,5 @@
+'use server';
+
 import { httpClient } from "@/lib/axios/httpClient";
 import { Category } from "@/types/meal.type";
 

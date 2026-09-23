@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCart } from '@/context/cart-context';
 import { ArrowRight, ShoppingBag } from 'lucide-react';
@@ -8,12 +9,13 @@ import { useQuery } from '@tanstack/react-query';
 import { currentUserQueryOptions } from '@/queries/current-user.query';
 
 export function FloatingOrderBar() {
+  const pathname = usePathname();
   const { totalCount, subtotal, setIsDrawerOpen, isDrawerOpen } = useCart();
   const { data: currentUserData } = useQuery(currentUserQueryOptions);
   const isProvider = currentUserData?.user?.role === 'PROVIDER';
 
-  // Hide when cart is empty, when drawer is already open, or when user is a provider
-  if (totalCount === 0 || isDrawerOpen || isProvider) return null;
+  // Hide when cart is empty, when drawer is already open, when user is a provider, or on /checkout
+  if (totalCount === 0 || isDrawerOpen || isProvider || pathname === '/checkout') return null;
 
   return (
     <AnimatePresence>

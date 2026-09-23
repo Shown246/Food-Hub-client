@@ -47,21 +47,22 @@ export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
 
+  const { data: profileResponse } = useQuery({
+    queryKey: ['customer-profile'],
+    queryFn: getCustomerProfile,
+    enabled: isLoggedIn,
+  });
+
   // Load customer profile to prefill form
   useEffect(() => {
-    if (isLoggedIn) {
-      getCustomerProfile().then((res) => {
-        if (res.success && res.data?.user) {
-          if (res.data.user.phone) {
-            setPhone(res.data.user.phone);
-          }
-          if (res.data.user.defaultDeliveryAddress) {
-            setDeliveryAddress(res.data.user.defaultDeliveryAddress);
-          }
-        }
-      });
+    if (profileResponse?.success && profileResponse.data?.user) {
+      const u = profileResponse.data.user;
+      if (u.phone) setPhone((prev) => prev || u.phone || '');
+      if (u.defaultDeliveryAddress) {
+        setDeliveryAddress((prev) => prev || u.defaultDeliveryAddress || '');
+      }
     }
-  }, [isLoggedIn]);
+  }, [profileResponse]);
 
   const isProvider = currentUserData?.user?.role === 'PROVIDER';
 

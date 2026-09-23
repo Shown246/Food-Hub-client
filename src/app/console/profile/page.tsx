@@ -11,7 +11,7 @@ export default async function ConsoleProfileRedirectPage() {
   if (role === 'PROVIDER') {
     redirect('/console/provider/profile');
   } else if (role === 'ADMIN') {
-    redirect('/console/admin');
+    redirect('/console/admin/profile');
   }
 
   redirect('/console/customer/profile');

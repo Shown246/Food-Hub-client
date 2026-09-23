@@ -1,12 +1,20 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
 import { Meal, MealProvider } from '@/types/meal.type';
 
 export interface CartItem {
   meal: Meal;
   quantity: number;
   note?: string;
+}
+
+export interface ProviderConflict {
+  newMeal: Meal;
+  quantity: number;
+  note?: string;
+  currentProviderName: string;
+  newProviderName: string;
 }
 
 interface CartContextType {
@@ -24,6 +32,8 @@ interface CartContextType {
   removeItem: (mealId: string) => void;
   clearCart: () => void;
   isInitialized: boolean;
+  providerConflict: ProviderConflict | null;
+  resolveProviderConflict: (accept: boolean) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -32,10 +42,15 @@ const STORAGE_KEY = 'foodhub_cart';
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
-  const [provider, setProvider] = useState<MealProvider | null>(null);
+  const [providerConflict, setProviderConflict] = useState<ProviderConflict | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedMealForModal, setSelectedMealForModal] = useState<Meal | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+
+  // Derive provider purely from current items
+  const provider = useMemo<MealProvider | null>(() => {
+    return items.length > 0 ? (items[0].meal.provider ?? null) : null;
+  }, [items]);
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -45,7 +60,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed.items)) {
           setItems(parsed.items);
-          setProvider(parsed.provider || null);
         }
       }
     } catch (e) {
@@ -78,29 +92,30 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }, 0);
   }, [items]);
 
-  const openCustomizationModal = (meal: Meal) => {
+  const openCustomizationModal = useCallback((meal: Meal) => {
     setSelectedMealForModal(meal);
-  };
+  }, []);
 
-  const closeCustomizationModal = () => {
+  const closeCustomizationModal = useCallback(() => {
     setSelectedMealForModal(null);
-  };
+  }, []);
 
-  const addItem = (meal: Meal, quantity: number, note?: string) => {
+  const addItem = useCallback((meal: Meal, quantity: number, note?: string) => {
     const mealProvider = meal.provider || null;
 
+    // Check for provider conflict: FoodHub requires single-provider orders.
+    if (provider && mealProvider && provider.id !== mealProvider.id && items.length > 0) {
+      setProviderConflict({
+        newMeal: meal,
+        quantity,
+        note,
+        currentProviderName: provider.name,
+        newProviderName: mealProvider.name,
+      });
+      return;
+    }
+
     setItems((prevItems) => {
-      // Check for provider conflict: FoodHub requires single-provider orders.
-      // If adding from a new provider, silently replace previous provider's items.
-      if (provider && mealProvider && provider.id !== mealProvider.id && prevItems.length > 0) {
-        setProvider(mealProvider);
-        return [{ meal, quantity, note: note?.trim() || undefined }];
-      }
-
-      if (!provider && mealProvider) {
-        setProvider(mealProvider);
-      }
-
       const existingIndex = prevItems.findIndex((item) => item.meal.id === meal.id);
       if (existingIndex > -1) {
         const updated = [...prevItems];
@@ -115,11 +130,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       return [...prevItems, { meal, quantity, note: note?.trim() || undefined }];
     });
-  };
+  }, [provider, items.length]);
 
-  const updateQuantity = (mealId: string, quantity: number) => {
+  const resolveProviderConflict = useCallback((accept: boolean) => {
+    if (accept && providerConflict) {
+      setItems([{
+        meal: providerConflict.newMeal,
+        quantity: providerConflict.quantity,
+        note: providerConflict.note?.trim() || undefined,
+      }]);
+    }
+    setProviderConflict(null);
+  }, [providerConflict]);
+
+  const updateQuantity = useCallback((mealId: string, quantity: number) => {
     if (quantity <= 0) {
-      removeItem(mealId);
+      setItems((prev) => prev.filter((item) => item.meal.id !== mealId));
       return;
     }
 
@@ -130,42 +156,56 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           : item
       )
     );
-  };
+  }, []);
 
-  const removeItem = (mealId: string) => {
-    setItems((prev) => {
-      const filtered = prev.filter((item) => item.meal.id !== mealId);
-      if (filtered.length === 0) {
-        setProvider(null);
-      }
-      return filtered;
-    });
-  };
+  const removeItem = useCallback((mealId: string) => {
+    setItems((prev) => prev.filter((item) => item.meal.id !== mealId));
+  }, []);
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     setItems([]);
-    setProvider(null);
-  };
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      items,
+      provider,
+      totalCount,
+      subtotal,
+      isDrawerOpen,
+      setIsDrawerOpen,
+      selectedMealForModal,
+      openCustomizationModal,
+      closeCustomizationModal,
+      addItem,
+      updateQuantity,
+      removeItem,
+      clearCart,
+      isInitialized,
+      providerConflict,
+      resolveProviderConflict,
+    }),
+    [
+      items,
+      provider,
+      totalCount,
+      subtotal,
+      isDrawerOpen,
+      selectedMealForModal,
+      openCustomizationModal,
+      closeCustomizationModal,
+      addItem,
+      updateQuantity,
+      removeItem,
+      clearCart,
+      isInitialized,
+      providerConflict,
+      resolveProviderConflict,
+    ]
+  );
 
   return (
-    <CartContext.Provider
-      value={{
-        items,
-        provider,
-        totalCount,
-        subtotal,
-        isDrawerOpen,
-        setIsDrawerOpen,
-        selectedMealForModal,
-        openCustomizationModal,
-        closeCustomizationModal,
-        addItem,
-        updateQuantity,
-        removeItem,
-        clearCart,
-        isInitialized,
-      }}
-    >
+    <CartContext.Provider value={value}>
       {children}
     </CartContext.Provider>
   );

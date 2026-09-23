@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { LayoutDashboard, LogOut, Menu, ShoppingBag, X } from "lucide-react";
 import { useState, useTransition } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { motion } from "motion/react";
 
 import { cn } from "@/lib/utils";
 import { logoutAction } from "@/app/(auth)/logout_action";
@@ -44,7 +43,7 @@ export function NavbarClient({ isLoggedIn, userRole, consoleUrl }: NavbarClientP
 
   const handleLogout = () => {
     startTransition(async () => {
-      queryClient.removeQueries({ queryKey: currentUserQueryKey });
+      queryClient.clear();
       await logoutAction();
     });
   };
@@ -87,14 +86,8 @@ export function NavbarClient({ isLoggedIn, userRole, consoleUrl }: NavbarClientP
                 )}
               >
                 {isActive && (
-                  <motion.span
-                    layoutId="navbar-active-tab"
-                    className="absolute inset-0 rounded-full bg-white shadow-sm dark:bg-zinc-800"
-                    transition={{
-                      type: "spring",
-                      stiffness: 380,
-                      damping: 30,
-                    }}
+                  <span
+                    className="absolute inset-0 rounded-full bg-white shadow-sm dark:bg-zinc-800 transition-all duration-200"
                     aria-hidden="true"
                   />
                 )}

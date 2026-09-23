@@ -12,12 +12,23 @@ import { getCategories } from '@/components/_category.action';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CreateMealDialog } from './create-meal-dialog';
-import { EditMealDialog } from './edit-meal-dialog';
-import { DeleteMealDialog } from './delete-meal-dialog';
+
+const CreateMealDialog = dynamic(
+  () => import('./create-meal-dialog').then((mod) => mod.CreateMealDialog),
+  { ssr: false }
+);
+const EditMealDialog = dynamic(
+  () => import('./edit-meal-dialog').then((mod) => mod.EditMealDialog),
+  { ssr: false }
+);
+const DeleteMealDialog = dynamic(
+  () => import('./delete-meal-dialog').then((mod) => mod.DeleteMealDialog),
+  { ssr: false }
+);
 import {
   AlertCircle,
   Archive,

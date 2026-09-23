@@ -118,7 +118,19 @@ export default function ProviderProfilePage() {
       setDefaultDeliveryAddress(user.defaultDeliveryAddress || '');
       setProfileImageUrl(user.profileImageUrl || '');
     }
-  }, [user?.id, providerProfile?.id]);
+  }, [
+    providerProfile?.name,
+    providerProfile?.description,
+    providerProfile?.address,
+    providerProfile?.phone,
+    providerProfile?.logoUrl,
+    providerProfile?.openingHours,
+    providerProfile?.acceptingOrders,
+    user?.fullName,
+    user?.phone,
+    user?.defaultDeliveryAddress,
+    user?.profileImageUrl,
+  ]);
 
   // Mutation to update business profile
   const updateBusinessMutation = useMutation({

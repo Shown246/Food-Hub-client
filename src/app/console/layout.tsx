@@ -23,7 +23,9 @@ export default async function ConsoleLayout({
   children: React.ReactNode;
 }>) {
   const currentUser = await getSessionIdentity();
-  if (!currentUser) redirect("/login");
+  if (!currentUser || currentUser.user.status === "SUSPENDED") {
+    redirect("/login");
+  }
 
   const queryClient = getQueryClient();
   queryClient.setQueryData(currentUserQueryKey, currentUser);

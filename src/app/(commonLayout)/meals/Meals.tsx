@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useEffect, useMemo, useState, useTransition } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { getMeals } from './_action';
 import { getCategories } from '@/components/_category.action';
+import { MealCard, MealCardSkeleton } from '@/components/meals/meal-card';
 import { Card, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -89,156 +90,6 @@ const LIMIT_OPTIONS = [
   { value: '12', label: '12 per page' },
   { value: '24', label: '24 per page' },
 ];
-
-const MealCard = ({
-  meal,
-  onAddToOrder,
-  cartQuantity,
-}: {
-  meal: Meal;
-  onAddToOrder: (meal: Meal) => void;
-  cartQuantity?: number;
-}) => {
-  const formattedPrice =
-    typeof meal.price === 'number'
-      ? meal.price.toFixed(2)
-      : parseFloat(meal.price || '0').toFixed(2);
-
-  return (
-    <Card className="group relative flex flex-col justify-between overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-border/60 bg-card rounded-2xl">
-      {/* Top Banner / Image Section */}
-      <div className="relative h-48 w-full overflow-hidden flex items-center justify-center">
-        <MealImage
-          src={meal.imageUrl}
-          alt={meal.name}
-          categoryName={meal.category?.name}
-          categorySlug={meal.category?.slug}
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
-
-        {/* Top Badges Overlay */}
-        <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none">
-          {/* Prep Time or Rating */}
-          <div className="flex items-center gap-1.5">
-            {meal.preparationTimeMinutes ? (
-              <Badge
-                variant="secondary"
-                className="bg-background/90 backdrop-blur-md text-foreground shadow-xs gap-1 text-xs px-2.5 py-1"
-              >
-                <Clock className="size-3.5 text-primary" />
-                <span>{meal.preparationTimeMinutes} min</span>
-              </Badge>
-            ) : null}
-
-            {meal.rating?.average ? (
-              <Badge
-                variant="secondary"
-                className="bg-background/90 backdrop-blur-md text-foreground shadow-xs gap-1 text-xs px-2 py-1"
-              >
-                <Star className="size-3 fill-amber-400 text-amber-400" />
-                <span className="font-semibold">{meal.rating.average.toFixed(1)}</span>
-              </Badge>
-            ) : null}
-          </div>
-
-          {/* Availability */}
-          <Badge
-            variant={meal.isAvailable !== false ? 'success' : 'destructive'}
-            className="bg-background/90 backdrop-blur-md shadow-xs text-xs px-2.5 py-1"
-          >
-            <span
-              className={`size-1.5 rounded-full mr-1.5 ${
-                meal.isAvailable !== false ? 'bg-emerald-500' : 'bg-rose-500'
-              }`}
-            />
-            {meal.isAvailable !== false ? 'Available' : 'Unavailable'}
-          </Badge>
-        </div>
-      </div>
-
-      {/* Card Content */}
-      <div className="flex flex-col flex-1 p-5 gap-3">
-        {/* Provider Info & Dietary Badges */}
-        <div className="flex items-center justify-between gap-2 text-xs">
-          {meal.provider?.name && (
-            <div className="flex items-center gap-1.5 text-muted-foreground font-medium truncate">
-              <Store className="size-3.5 text-primary shrink-0" />
-              <span className="truncate">{meal.provider.name}</span>
-            </div>
-          )}
-
-          {meal.dietaryLabels && meal.dietaryLabels.length > 0 && (
-            <div className="flex flex-wrap gap-1 shrink-0">
-              {meal.dietaryLabels.slice(0, 2).map((label) => (
-                <Badge
-                  key={label}
-                  variant="outline"
-                  className="capitalize text-[10px] py-0 px-2 font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
-                >
-                  {label}
-                </Badge>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Meal Name */}
-        <h3 className="font-semibold text-lg text-foreground tracking-tight line-clamp-1 group-hover:text-primary transition-colors">
-          {meal.name}
-        </h3>
-
-        {/* Description */}
-        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed min-h-[2.5rem]">
-          {meal.description || 'No description available for this delicious meal.'}
-        </p>
-      </div>
-
-      {/* Card Footer: Price & Action */}
-      <CardFooter className="p-5 pt-0 flex items-center justify-between gap-3 border-t border-border/40 mt-auto">
-        <div>
-          <span className="text-xs text-muted-foreground block font-medium">Price</span>
-          <span className="text-xl font-bold text-primary">৳{formattedPrice}</span>
-        </div>
-
-        <Button
-          size="sm"
-          type="button"
-          onClick={() => onAddToOrder(meal)}
-          className={cn(
-            'gap-2 font-medium rounded-xl shadow-xs transition-all',
-            cartQuantity && cartQuantity > 0
-              ? 'bg-orange-500 hover:bg-orange-600 text-white'
-              : 'bg-primary hover:bg-primary/90 text-primary-foreground'
-          )}
-          disabled={meal.isAvailable === false}
-        >
-          <ShoppingBag className="size-4" />
-          <span>
-            {cartQuantity && cartQuantity > 0 ? `In Order (${cartQuantity})` : 'Add to Order'}
-          </span>
-        </Button>
-      </CardFooter>
-    </Card>
-  );
-};
-
-// Skeleton loader card
-const MealCardSkeleton = () => (
-  <div className="flex flex-col gap-4 p-4 border border-border/60 rounded-2xl bg-card">
-    <Skeleton className="h-48 w-full rounded-xl" />
-    <div className="space-y-2">
-      <Skeleton className="h-4 w-1/3" />
-      <Skeleton className="h-6 w-3/4" />
-      <Skeleton className="h-4 w-full" />
-      <Skeleton className="h-4 w-2/3" />
-    </div>
-    <div className="flex items-center justify-between pt-2">
-      <Skeleton className="h-8 w-20" />
-      <Skeleton className="h-9 w-28 rounded-xl" />
-    </div>
-  </div>
-);
 
 const Meals = () => {
   const router = useRouter();
@@ -326,6 +177,7 @@ const Meals = () => {
   const { data, isLoading, isError, isFetching, refetch } = useQuery({
     queryKey: ['meals', queryParams],
     queryFn: () => getMeals(queryParams),
+    placeholderData: keepPreviousData,
   });
 
   const rawData = data as any;

@@ -8,7 +8,7 @@ export const currentUserQueryOptions = queryOptions({
   queryFn: async () => {
     const response = await getCurrentUserAction();
     if (!response.success || !response.data) {
-      throw new Error(response.message ?? "Not authenticated");
+      return null;
     }
     return response.data;
   },
