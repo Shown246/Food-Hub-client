@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Food Hub
 
-## Getting Started
+**Discover local kitchens. Find your next favorite meal.**
 
-First, run the development server:
+Food Hub brings food lovers and local kitchens together in one place. Explore meals, compare options, and place an order for delivery. For kitchens and restaurants, it offers a convenient way to showcase a menu and manage incoming orders.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Find something you'll love
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Whether you know exactly what you're craving or want to try something new, Food Hub helps you explore your options.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Browse meals and kitchens** — Discover dishes from local food providers and explore top-rated options.
+- **Search your way** — Narrow your choices by category, price range, or dietary preference, and sort by price or rating.
+- **Make it your order** — Choose quantities and add a note for the kitchen, such as a request for less spice.
+- **Review before confirming** — Check your items, delivery fee, and total before placing an order.
+- **Follow your order** — View order status updates and revisit previous orders from your account.
+- **Share your experience** — Rate and review meals after your order has been delivered.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## How to order
 
-## Learn More
+1. **Explore the menu.** Search for a favorite dish or browse meals and kitchens.
+2. **Build your cart.** Select meals from one kitchen, choose quantities, and add any kitchen notes.
+3. **Sign in and check out.** Create a customer account or sign in, then enter your phone number, delivery address, and any delivery instructions.
+4. **Confirm and follow along.** Place your order and check its progress in **My Orders**.
+5. **Leave a review.** Once your order is delivered, share your feedback.
 
-To learn more about Next.js, take a look at the following resources:
+> Each order contains meals from a single kitchen. If you choose a meal from another kitchen, Food Hub will ask whether you'd like to start a new cart.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## A place for customers and kitchens
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| For customers | For kitchens and restaurants |
+| --- | --- |
+| Discover meals and compare prices. | Create a provider account and business profile. |
+| Place orders and view their progress. | Add, edit, and manage menu items. |
+| Keep delivery details in a personal profile. | View incoming orders and update their status. |
+| Review delivered meals. | Manage business information in one place. |
 
-## Deploy on Vercel
+Food Hub also includes an administration area for managing users, food categories, and orders.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Getting started
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Choose a **Customer** account to order food, or a **Provider** account to manage a kitchen or restaurant. You can browse meals and kitchens before signing in; you'll need to sign in to place an order.
+
+When you're ready, start with **Explore All Meals** or **Meet Our Kitchens** on the home page.
